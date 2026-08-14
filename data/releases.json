@@ -1,6 +1,9 @@
 {
-  "generatedAt": null,
+  "generatedAt": "2026-08-14T23:36:34.792Z",
   "count": 0,
-  "dateWindow": null,
+  "dateWindow": {
+    "from": "2026-02-14",
+    "to": "2028-02-14"
+  },
   "releases": []
 }

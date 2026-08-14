@@ -31,7 +31,7 @@ const FUTURE_MONTHS = 18;
 
 // Pages of 40 results to pull per search term. Raise cautiously — this
 // multiplies directly against Google's request quota.
-const MAX_PAGES_PER_TERM = 3;
+const MAX_PAGES_PER_TERM = 5;
 const PAGE_SIZE = 40;
 const REQUEST_DELAY_MS = 350;
 
@@ -74,7 +74,13 @@ function monthsFromNow(n) {
 }
 
 function buildQuery(term) {
-  const q = `inpublisher:"${term}" subject:"Science Fiction"`;
+  // NOTE: deliberately NOT adding subject:"Science Fiction" here. Google
+  // Books' category field is inconsistent (many genuine SF/fantasy titles
+  // from these imprints come back tagged just "Fiction", or with a narrow
+  // subject like "Dragons" or "Mars (Planet)"), so a category-based filter
+  // rejects most real matches. We rely instead on the curated imprint list
+  // in PUBLISHERS as the genre signal.
+  const q = `inpublisher:"${term}"`;
   const params = new URLSearchParams({
     q,
     country: "US",
@@ -109,10 +115,9 @@ function normalizeItem(item, publisherGroup) {
 
   if (!FULL_DATE_RE.test(releaseDate)) return null; // need day-level precision
 
+  // NOTE: intentionally not filtering on categories here — see buildQuery()
+  // for why. Genre tags are kept on the record for display/filtering only.
   const categories = info.categories || [];
-  if (categories.length > 0 && !categories.some((c) => SCI_FI_RE.test(c))) {
-    return null; // query matched but categories don't actually mention sci-fi
-  }
 
   return {
     id: item.id,
@@ -128,8 +133,8 @@ function normalizeItem(item, publisherGroup) {
 }
 
 async function fetchForTerm(term, publisherGroup, resultsMap) {
+  let startIndex = 0;
   for (let page = 0; page < MAX_PAGES_PER_TERM; page++) {
-    const startIndex = page * PAGE_SIZE;
     let data;
     try {
       data = await fetchPage(term, startIndex);
@@ -140,20 +145,18 @@ async function fetchForTerm(term, publisherGroup, resultsMap) {
 
     const items = data.items || [];
     const totalItems = data.totalItems || 0;
-    if (process.env.DEBUG_FETCH) {
-      console.log(`    [debug] totalItems=${totalItems} itemsThisPage=${items.length}`);
-      for (const item of items.slice(0, 3)) {
-        const info = item.volumeInfo || {};
-        console.log(`    [debug] sample: title="${info.title}" publishedDate="${info.publishedDate}" categories=${JSON.stringify(info.categories || [])} publisher="${info.publisher}"`);
-      }
-    }
     for (const item of items) {
       const normalized = normalizeItem(item, publisherGroup);
       if (normalized) resultsMap.set(normalized.id, normalized);
     }
 
     await sleep(REQUEST_DELAY_MS);
-    if (startIndex + PAGE_SIZE >= totalItems || items.length === 0) break;
+    // Advance by the number of items actually returned, not PAGE_SIZE:
+    // Google sometimes returns fewer than maxResults per page, and
+    // advancing by the requested size would silently skip results.
+    if (items.length === 0) break;
+    startIndex += items.length;
+    if (startIndex >= totalItems) break;
   }
 }
 

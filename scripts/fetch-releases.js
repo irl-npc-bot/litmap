@@ -139,12 +139,19 @@ async function fetchForTerm(term, publisherGroup, resultsMap) {
     }
 
     const items = data.items || [];
+    const totalItems = data.totalItems || 0;
+    if (process.env.DEBUG_FETCH) {
+      console.log(`    [debug] totalItems=${totalItems} itemsThisPage=${items.length}`);
+      for (const item of items.slice(0, 3)) {
+        const info = item.volumeInfo || {};
+        console.log(`    [debug] sample: title="${info.title}" publishedDate="${info.publishedDate}" categories=${JSON.stringify(info.categories || [])} publisher="${info.publisher}"`);
+      }
+    }
     for (const item of items) {
       const normalized = normalizeItem(item, publisherGroup);
       if (normalized) resultsMap.set(normalized.id, normalized);
     }
 
-    const totalItems = data.totalItems || 0;
     await sleep(REQUEST_DELAY_MS);
     if (startIndex + PAGE_SIZE >= totalItems || items.length === 0) break;
   }

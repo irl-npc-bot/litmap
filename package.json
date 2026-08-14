@@ -1,0 +1,13 @@
+{
+  "name": "scifi-release-calendar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A calendar of science fiction book releases from major publishing houses.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "fetch": "node scripts/fetch-releases.js"
+  }
+}

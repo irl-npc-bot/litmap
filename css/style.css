@@ -1,0 +1,387 @@
+/* ---------------------------------------------------------
+   Design tokens
+--------------------------------------------------------- */
+:root {
+  --bg: #0B0E1A;
+  --bg-deep: #06070E;
+  --panel: #141830;
+  --panel-raised: #1B2040;
+  --border: #262C4C;
+  --border-soft: #1E2340;
+
+  --text: #E8E6DD;
+  --text-muted: #9CA3C4;
+  --text-faint: #5C628A;
+
+  --accent: #E8A33D;
+  --accent-soft: rgba(232, 163, 61, 0.16);
+  --accent-glow: rgba(232, 163, 61, 0.55);
+  --teal: #5B8C9E;
+  --teal-soft: rgba(91, 140, 158, 0.16);
+
+  --font-display: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  --font-body: 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100%;
+}
+
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+a { color: var(--accent); }
+
+/* ---------------------------------------------------------
+   Ambient starfield backdrop (signature element, quiet)
+--------------------------------------------------------- */
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 8% 22%, rgba(232,230,221,0.55) 0, transparent 60%),
+    radial-gradient(1px 1px at 22% 68%, rgba(232,230,221,0.4) 0, transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 12%, rgba(232,230,221,0.5) 0, transparent 60%),
+    radial-gradient(1px 1px at 54% 78%, rgba(232,230,221,0.35) 0, transparent 60%),
+    radial-gradient(1.5px 1.5px at 68% 34%, rgba(232,230,221,0.5) 0, transparent 60%),
+    radial-gradient(1px 1px at 81% 58%, rgba(232,230,221,0.4) 0, transparent 60%),
+    radial-gradient(1px 1px at 92% 18%, rgba(232,230,221,0.45) 0, transparent 60%),
+    radial-gradient(1px 1px at 14% 90%, rgba(232,230,221,0.3) 0, transparent 60%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 45%, var(--bg) 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* ---------------------------------------------------------
+   Header
+--------------------------------------------------------- */
+.site-header {
+  position: relative;
+  z-index: 1;
+  padding: 64px 24px 40px;
+  text-align: center;
+}
+
+.header-inner { max-width: 720px; margin: 0 auto; }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 14px;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(40px, 7vw, 64px);
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text);
+}
+
+.wordmark-dot { color: var(--accent); }
+
+.tagline {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 16px auto 0;
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------
+   Layout
+--------------------------------------------------------- */
+.layout {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.calendar-panel, .dispatch-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+/* ---------------------------------------------------------
+   Calendar controls
+--------------------------------------------------------- */
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.month-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: 0.01em;
+}
+
+.nav-btn {
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.nav-btn:focus-visible,
+.day-cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------
+   Weekday row + grid
+--------------------------------------------------------- */
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.weekday-row span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-height: 52px;
+  background: var(--panel-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 6px 7px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.day-cell:hover { border-color: var(--teal); }
+
+.day-cell.is-empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+.day-cell.is-today { border-color: var(--teal); }
+
+.day-cell.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.day-number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.day-cell.is-today .day-number,
+.day-cell.is-selected .day-number { color: var(--text); }
+
+/* constellation marker: small dot cluster scaled by release count */
+.release-marks {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: flex-start;
+}
+
+.release-mark {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 4px var(--accent-glow);
+}
+
+.release-mark-overflow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------
+   Dispatch panel
+--------------------------------------------------------- */
+.dispatch-header { margin-bottom: 18px; }
+
+#dispatch-date {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 20px;
+  margin: 0;
+}
+
+.dispatch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-faint);
+  line-height: 1.6;
+}
+
+.release-card {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  padding: 12px;
+  background: var(--panel-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.release-cover {
+  width: 52px;
+  height: 78px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--border);
+}
+
+.release-cover.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.release-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.35;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+
+.release-title a { color: inherit; text-decoration: none; }
+.release-title a:hover { color: var(--accent); }
+
+.release-author {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+.release-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.tag.tag-publisher { border-color: var(--teal); color: var(--teal); }
+
+/* ---------------------------------------------------------
+   Data status + footer
+--------------------------------------------------------- */
+.data-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 16px 0 0;
+  text-align: center;
+}
+
+.site-footer {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+  text-align: center;
+}
+
+.site-footer p {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--text-faint);
+}
+
+/* ---------------------------------------------------------
+   Reduced motion
+--------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

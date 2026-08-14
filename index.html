@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Almanac — Sci-Fi Release Calendar</title>
+<meta name="description" content="A calendar of upcoming and recent science fiction book releases from the major publishing houses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="sky" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <p class="eyebrow">A field guide to forthcoming worlds</p>
+    <h1 class="wordmark">Almanac<span class="wordmark-dot">.</span></h1>
+    <p class="tagline">Science fiction releases from the major publishing houses, charted by date.</p>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="calendar-panel" aria-label="Release calendar">
+    <div class="calendar-controls">
+      <button id="prev-month" class="nav-btn" aria-label="Previous month">&larr;</button>
+      <div class="month-display">
+        <span id="month-label" class="month-label">—</span>
+      </div>
+      <button id="next-month" class="nav-btn" aria-label="Next month">&rarr;</button>
+    </div>
+
+    <div class="weekday-row" aria-hidden="true">
+      <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+    </div>
+
+    <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendar dates"></div>
+
+    <p id="data-status" class="data-status"></p>
+  </section>
+
+  <section class="dispatch-panel" aria-label="Releases for selected date">
+    <div class="dispatch-header">
+      <p class="eyebrow">Dispatch log</p>
+      <h2 id="dispatch-date">Select a date</h2>
+    </div>
+    <div id="dispatch-list" class="dispatch-list">
+      <p class="empty-state">Click a date on the calendar to see what's landing that day.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Sources: Google Books API, filtered to Science Fiction titles from Penguin Random House, HarperCollins, Simon &amp; Schuster, Hachette Book Group, Macmillan Publishers, and Bloomsbury Publishing (US editions). Data refreshes on a schedule via GitHub Actions — coverage of far-future titles may be incomplete.</p>
+</footer>
+
+<script src="js/app.js" defer></script>
+</body>
+</html>

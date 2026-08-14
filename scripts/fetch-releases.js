@@ -80,6 +80,8 @@ function buildQuery(term) {
     country: "US",
     maxResults: String(PAGE_SIZE),
     printType: "books",
+    orderBy: "newest",
+    showPreorders: "true",
   });
   if (API_KEY) params.set("key", API_KEY);
   return params;

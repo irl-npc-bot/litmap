@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-08-14T23:49:52.272Z",
-  "count": 24,
+  "generatedAt": "2026-08-15T04:29:55.905Z",
+  "count": 16,
   "dateWindow": {
-    "from": "2026-02-14",
-    "to": "2028-02-14"
+    "from": "2026-02-15",
+    "to": "2028-02-15"
   },
   "releases": [
     {
-      "id": "vMqn0QEACAAJ",
-      "title": "White Nights",
+      "id": "9eO4EQAAQBAJ",
+      "title": "The Legend of the Nine-Tailed Fox",
       "authors": [
-        "Fyodor Dostoyevsky"
+        "Katrina Kwan"
       ],
-      "publisher": "Select Classics",
-      "publisherGroup": "Penguin Random House",
-      "releaseDate": "2026-03-03",
+      "publisher": "Simon and Schuster",
+      "publisherGroup": "Simon & Schuster",
+      "releaseDate": "2026-02-24",
       "genreTags": [
         "Fiction"
       ],
-      "coverUrl": "https://books.google.com/books/content?id=vMqn0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=vMqn0QEACAAJ&dq=inpublisher:%22Penguin+Random+House%22&hl=&as_pt=BOOKS&source=gbs_api"
+      "coverUrl": "https://books.google.com/books/content?id=9eO4EQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+      "infoLink": "http://books.google.com/books?id=9eO4EQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
     },
     {
       "id": "oKO9EQAAQBAJ",
@@ -35,22 +35,6 @@
       ],
       "coverUrl": "https://books.google.com/books/content?id=oKO9EQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
       "infoLink": "http://books.google.com/books?id=oKO9EQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "LR-xEQAAQBAJ",
-      "title": "The Bloomsbury Handbook of Hindu Ethics",
-      "authors": [
-        "Pratap Kumar Penumala",
-        "Arvind Sharma"
-      ],
-      "publisher": "Bloomsbury Publishing",
-      "publisherGroup": "Bloomsbury Publishing",
-      "releaseDate": "2026-03-05",
-      "genreTags": [
-        "Religion"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=LR-xEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=LR-xEQAAQBAJ&source=gbs_api"
     },
     {
       "id": "GPTFEQAAQBAJ",
@@ -98,21 +82,6 @@
       "infoLink": "http://books.google.com/books?id=6vzMEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
     },
     {
-      "id": "yW6M0QEACAAJ",
-      "title": "Taipei People",
-      "authors": [
-        "Pai Hsien-yung"
-      ],
-      "publisher": "Vintage Classics",
-      "publisherGroup": "Penguin Random House",
-      "releaseDate": "2026-05-07",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=yW6M0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=yW6M0QEACAAJ&dq=inpublisher:%22Penguin+Random+House%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
       "id": "wGGCEQAAQBAJ",
       "title": "We Dance Upon Demons",
       "authors": [
@@ -141,21 +110,6 @@
       ],
       "coverUrl": "https://books.google.com/books/content?id=Hb3VEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
       "infoLink": "http://books.google.com/books?id=Hb3VEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "vuTHEQAAQBAJ",
-      "title": "View from the East Wing",
-      "authors": [
-        "Jill Biden"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-06-02",
-      "genreTags": [
-        "Biography & Autobiography"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=vuTHEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=vuTHEQAAQBAJ&dq=inpublisher:%22Gallery+Books%22&hl=&as_pt=BOOKS&source=gbs_api"
     },
     {
       "id": "mZXYEQAAQBAJ",
@@ -204,66 +158,6 @@
       "infoLink": "https://play.google.com/store/books/details?id=IOGQEQAAQBAJ&source=gbs_api"
     },
     {
-      "id": "Aumb0QEACAAJ",
-      "title": "The Book of Imaginary Beings",
-      "authors": [
-        "Jorge Luis Borges"
-      ],
-      "publisher": "Vintage Classics",
-      "publisherGroup": "Penguin Random House",
-      "releaseDate": "2026-07-02",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=Aumb0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=Aumb0QEACAAJ&dq=inpublisher:%22Penguin+Random+House%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "xhKc0QEACAAJ",
-      "title": "Passing",
-      "authors": [
-        "Nella Larsen"
-      ],
-      "publisher": "Vintage Classic",
-      "publisherGroup": "Penguin Random House",
-      "releaseDate": "2026-07-02",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=xhKc0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=xhKc0QEACAAJ&dq=inpublisher:%22Penguin+Random+House%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "I2tlEQAAQBAJ",
-      "title": "Every Version of You",
-      "authors": [
-        "Natalie Messier"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-07-07",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=I2tlEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=I2tlEQAAQBAJ&source=gbs_api"
-    },
-    {
-      "id": "P9-QEQAAQBAJ",
-      "title": "The Romance Revival",
-      "authors": [
-        "Christina Lauren"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-07-14",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=P9-QEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=P9-QEQAAQBAJ&source=gbs_api"
-    },
-    {
       "id": "seCQEQAAQBAJ",
       "title": "A Forsaken Prophecy",
       "authors": [
@@ -279,34 +173,19 @@
       "infoLink": "https://play.google.com/store/books/details?id=seCQEQAAQBAJ&source=gbs_api"
     },
     {
-      "id": "IPnNEQAAQBAJ",
-      "title": "The Wind in the Willows",
-      "authors": [
-        "Kenneth Grahame"
-      ],
-      "publisher": "Anaconda Verlag",
-      "publisherGroup": "Penguin Random House",
-      "releaseDate": "2026-08-12",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=IPnNEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=IPnNEQAAQBAJ&source=gbs_api"
-    },
-    {
-      "id": "pKnf0QEACAAJ",
+      "id": "VYbCEQAAQBAJ",
       "title": "The Book of Were-Wolves",
       "authors": [
         "Sabine Baring-Gould"
       ],
-      "publisher": "S&S/Saga Press",
+      "publisher": "Simon and Schuster",
       "publisherGroup": "Simon & Schuster",
       "releaseDate": "2026-09-01",
       "genreTags": [
         "Social Science"
       ],
-      "coverUrl": "https://books.google.com/books/content?id=pKnf0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=pKnf0QEACAAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
+      "coverUrl": "https://books.google.com/books/content?id=VYbCEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+      "infoLink": "https://play.google.com/store/books/details?id=VYbCEQAAQBAJ&source=gbs_api"
     },
     {
       "id": "LGHW0QEACAAJ",

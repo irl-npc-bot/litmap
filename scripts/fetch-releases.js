@@ -35,32 +35,47 @@ const MAX_PAGES_PER_TERM = 5;
 const PAGE_SIZE = 40;
 const REQUEST_DELAY_MS = 350;
 
-// Publisher group -> search terms (parent name + known SF imprints).
-// Extend these lists as you discover more relevant imprints.
+// Publisher group -> { pure: [...], broad: [...] }
+//   pure  = dedicated SF/Fantasy imprints. The imprint itself is the genre
+//           signal, so results are trusted without a category check.
+//   broad = parent-company or general-fiction imprint names. These catalogs
+//           cover every genre the house publishes, so results DO need a
+//           category check, or a search like "Penguin Random House" pulls in
+//           cookbooks, memoirs, academic titles, literary fiction, etc.
 const PUBLISHERS = {
-  "Penguin Random House": [
-    "Penguin Random House", "Del Rey", "Ace Books", "DAW Books",
-    "Ballantine Books", "Berkley",
-  ],
-  "HarperCollins": [
-    "HarperCollins", "Harper Voyager", "Avon",
-  ],
-  "Simon & Schuster": [
-    "Simon & Schuster", "Saga Press", "Gallery Books",
-  ],
-  "Hachette Book Group": [
-    "Hachette Book Group", "Orbit", "Redhook Books",
-  ],
-  "Macmillan Publishers": [
-    "Macmillan", "Tor Books", "Tordotcom", "Forge Books",
-  ],
-  "Bloomsbury Publishing": [
-    "Bloomsbury Publishing", "Bloomsbury",
-  ],
+  "Penguin Random House": {
+    pure: ["Del Rey", "Ace Books", "DAW Books"],
+    broad: ["Penguin Random House", "Ballantine Books", "Berkley"],
+  },
+  "HarperCollins": {
+    pure: ["Harper Voyager"],
+    broad: ["HarperCollins", "Avon"],
+  },
+  "Simon & Schuster": {
+    pure: ["Saga Press"],
+    broad: ["Simon & Schuster", "Gallery Books"],
+  },
+  "Hachette Book Group": {
+    pure: ["Orbit", "Redhook Books"],
+    broad: ["Hachette Book Group"],
+  },
+  "Macmillan Publishers": {
+    pure: ["Tor Books", "Tordotcom", "Forge Books"],
+    broad: ["Macmillan"],
+  },
+  "Bloomsbury Publishing": {
+    pure: [],
+    broad: ["Bloomsbury Publishing", "Bloomsbury"],
+  },
 };
 
 const FULL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const SCI_FI_RE = /science fiction/i;
+// Broadened on purpose: Google's own category tags for genuine SFF titles
+// are often narrow ("Dragons", "Mars (Planet)", "Alien contact") rather than
+// literally "Science Fiction", so an exact-phrase match rejects real books.
+// This only gates the broad/parent-catalog terms (see PUBLISHERS above) —
+// pure imprint results skip this check entirely.
+const GENRE_RE = /science.?fiction|fantasy|dystopia|apocalyp|speculative fiction|space opera|alien|extraterrestrial|time travel|cyberpunk|dragon|robot|magic/i;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -109,15 +124,18 @@ function toHttps(url) {
   return url ? url.replace(/^http:\/\//, "https://") : url;
 }
 
-function normalizeItem(item, publisherGroup) {
+function normalizeItem(item, publisherGroup, requireGenreMatch) {
   const info = item.volumeInfo || {};
   const releaseDate = info.publishedDate || "";
 
   if (!FULL_DATE_RE.test(releaseDate)) return null; // need day-level precision
 
-  // NOTE: intentionally not filtering on categories here — see buildQuery()
-  // for why. Genre tags are kept on the record for display/filtering only.
   const categories = info.categories || [];
+  if (requireGenreMatch) {
+    // Broad/parent-catalog term: this house publishes every genre, so we
+    // need positive evidence the book is actually SFF, not just any title.
+    if (!categories.some((c) => GENRE_RE.test(c))) return null;
+  }
 
   return {
     id: item.id,
@@ -132,7 +150,7 @@ function normalizeItem(item, publisherGroup) {
   };
 }
 
-async function fetchForTerm(term, publisherGroup, resultsMap) {
+async function fetchForTerm(term, publisherGroup, resultsMap, requireGenreMatch) {
   let startIndex = 0;
   for (let page = 0; page < MAX_PAGES_PER_TERM; page++) {
     let data;
@@ -146,7 +164,7 @@ async function fetchForTerm(term, publisherGroup, resultsMap) {
     const items = data.items || [];
     const totalItems = data.totalItems || 0;
     for (const item of items) {
-      const normalized = normalizeItem(item, publisherGroup);
+      const normalized = normalizeItem(item, publisherGroup, requireGenreMatch);
       if (normalized) resultsMap.set(normalized.id, normalized);
     }
 
@@ -170,11 +188,15 @@ async function main() {
     console.log("No GOOGLE_BOOKS_API_KEY set — using unauthenticated requests (lower quota).");
   }
 
-  for (const [publisherGroup, terms] of Object.entries(PUBLISHERS)) {
+  for (const [publisherGroup, { pure = [], broad = [] }] of Object.entries(PUBLISHERS)) {
     console.log(`\n${publisherGroup}`);
-    for (const term of terms) {
-      console.log(`  querying "${term}"...`);
-      await fetchForTerm(term, publisherGroup, resultsMap);
+    for (const term of pure) {
+      console.log(`  querying "${term}" (pure imprint, no genre filter)...`);
+      await fetchForTerm(term, publisherGroup, resultsMap, false);
+    }
+    for (const term of broad) {
+      console.log(`  querying "${term}" (broad catalog, genre filter applied)...`);
+      await fetchForTerm(term, publisherGroup, resultsMap, true);
     }
   }
 

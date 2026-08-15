@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-15T04:31:46.810Z",
-  "count": 13,
+  "generatedAt": "2026-08-15T04:33:57.095Z",
+  "count": 15,
   "dateWindow": {
     "from": "2026-02-15",
     "to": "2028-02-15"
@@ -97,6 +97,21 @@
       "infoLink": "http://books.google.com/books?id=Hb3VEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
     },
     {
+      "id": "mZXYEQAAQBAJ",
+      "title": "The Found and the Lost",
+      "authors": [
+        "Ursula K. Le Guin"
+      ],
+      "publisher": "Simon and Schuster",
+      "publisherGroup": "Simon & Schuster",
+      "releaseDate": "2026-06-09",
+      "genreTags": [
+        "Fiction"
+      ],
+      "coverUrl": "https://books.google.com/books/content?id=mZXYEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+      "infoLink": "http://books.google.com/books?id=mZXYEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
+    },
+    {
       "id": "otCEEQAAQBAJ",
       "title": "Songs of the Dead",
       "authors": [
@@ -143,19 +158,34 @@
       "infoLink": "https://play.google.com/store/books/details?id=seCQEQAAQBAJ&source=gbs_api"
     },
     {
-      "id": "VYbCEQAAQBAJ",
+      "id": "pKnf0QEACAAJ",
       "title": "The Book of Were-Wolves",
       "authors": [
         "Sabine Baring-Gould"
       ],
-      "publisher": "Simon and Schuster",
+      "publisher": "S&S/Saga Press",
       "publisherGroup": "Simon & Schuster",
       "releaseDate": "2026-09-01",
       "genreTags": [
         "Social Science"
       ],
-      "coverUrl": "https://books.google.com/books/content?id=VYbCEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=VYbCEQAAQBAJ&source=gbs_api"
+      "coverUrl": "https://books.google.com/books/content?id=pKnf0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+      "infoLink": "http://books.google.com/books?id=pKnf0QEACAAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
+    },
+    {
+      "id": "LGHW0QEACAAJ",
+      "title": "Crossroads of Ravens",
+      "authors": [
+        "Andrzej Sapkowski"
+      ],
+      "publisher": "Hachette Book Group",
+      "publisherGroup": "Hachette Book Group",
+      "releaseDate": "2026-09-29",
+      "genreTags": [
+        "Fiction"
+      ],
+      "coverUrl": "https://books.google.com/books/content?id=LGHW0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+      "infoLink": "http://books.google.com/books?id=LGHW0QEACAAJ&dq=inpublisher:%22Orbit%22&hl=&as_pt=BOOKS&source=gbs_api"
     },
     {
       "id": "aEQS0gEACAAJ",

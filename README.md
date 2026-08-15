@@ -58,17 +58,33 @@ python3 -m http.server 8000      # or any static file server
 - **Imprint mapping, not perfect.** Google Books stores the *imprint*
   (e.g. "Del Rey", "Tor Books") as a title's publisher, not the parent
   company. `scripts/fetch-releases.js` maps each of the six groups to its
-  best-known sci-fi imprints — extend the `PUBLISHERS` object at the top of
-  that file if you notice a well-known imprint is missing.
+  own dedicated SF/Fantasy imprints (`pure`, trusted without a genre check)
+  plus general parent-catalog terms (`broad`, genre-filtered since those
+  catalogs cover every genre the house publishes) — extend either list in
+  the `PUBLISHERS` object if you notice a well-known imprint is missing.
+- **Coverage is uneven across publishers, and that's expected.** In
+  practice, imprints like Tor, Orbit, and Saga Press turn up plenty of
+  day-precise forthcoming titles, while others (Del Rey, Harper Voyager)
+  often only have a bare year or year-month in Google's metadata until
+  much closer to release — those titles won't appear here yet even though
+  the fetch queries ran and returned data. This is a source-data gap, not
+  a fetch failure; check `data/releases.json`'s `count` and the Action's
+  run summary if a publisher looks sparse.
 - **Forthcoming-title coverage is incomplete.** Google Books (and book
   metadata aggregators generally) index titles as they're cataloged, not
   from publisher pre-announcements — a book may not appear until close to
-  its release date. This calendar will under-represent titles announced far
-  in advance. If that turns out to matter a lot in practice, a paid,
-  industry-specific source (e.g. ISBNdb, Edelweiss) is the upgrade path.
-- **Genre tagging is Google's, not the publishers'.** Filtering uses Google
-  Books' own category strings plus a same-record cross-check; this is
-  reasonably reliable but not authoritative.
+  its release date. `showPreorders=true` and `orderBy=newest` are set to
+  surface as many upcoming titles as Google has, but this will still
+  under-represent titles announced far in advance. If that turns out to
+  matter a lot in practice, a paid, industry-specific source (e.g. ISBNdb,
+  Edelweiss) is the upgrade path.
+- **Genre tagging is Google's, not the publishers'.** For `pure` imprint
+  terms, the imprint itself is treated as the genre signal (no category
+  check). For `broad` terms, a title must have a category tag matching a
+  fairly wide SFF-adjacent pattern (`science fiction`, `fantasy`,
+  `dystopia`, `space opera`, `dragon`, etc.) — Google's own tags are
+  inconsistent enough that a strict "science fiction" match rejects most
+  real matches, so this is intentionally broad rather than strict.
 - **Day-level dates only.** Titles with only a year or year-month in Google's
   data (no specific day) are excluded, since they can't be placed on a
   calendar date.

@@ -163,6 +163,9 @@ async function fetchForTerm(term, publisherGroup, resultsMap, requireGenreMatch)
 
     const items = data.items || [];
     const totalItems = data.totalItems || 0;
+    if (process.env.DEBUG_FETCH) {
+      console.log(`    [debug] totalItems=${totalItems} itemsThisPage=${items.length} startIndex=${startIndex}`);
+    }
     for (const item of items) {
       const normalized = normalizeItem(item, publisherGroup, requireGenreMatch);
       if (normalized) resultsMap.set(normalized.id, normalized);

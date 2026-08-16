@@ -1,3 +1,5 @@
+import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
+
 (function () {
   "use strict";
 
@@ -7,10 +9,13 @@
     "July", "August", "September", "October", "November", "December"
   ];
   const MAX_DOTS = 5;
+  const RADIUS_DAYS = 30;
 
   /** @type {Record<string, Array<Object>>} */
   let releasesByDate = {};
-  let dataMeta = { generatedAt: null, count: 0 };
+  /** ISO date strings we've already queried live (empty result still counts as "covered"). */
+  const coveredDays = new Set();
+  let activeFetchController = null;
 
   const today = new Date();
   let viewYear = today.getFullYear();
@@ -28,10 +33,7 @@
   };
 
   function isoDate(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
+    return isoDateFmt(d);
   }
 
   function parseIsoDate(str) {
@@ -40,37 +42,79 @@
     return new Date(y, m - 1, d);
   }
 
-  async function loadData() {
-    try {
-      const res = await fetch("data/releases.json", { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      dataMeta = { generatedAt: json.generatedAt || null, count: json.count || 0 };
-      releasesByDate = {};
-      (json.releases || []).forEach((r) => {
-        if (!r.releaseDate) return;
-        if (!releasesByDate[r.releaseDate]) releasesByDate[r.releaseDate] = [];
-        releasesByDate[r.releaseDate].push(r);
-      });
-    } catch (err) {
-      console.error("Failed to load release data:", err);
-      dataMeta = { generatedAt: null, count: 0 };
-      releasesByDate = {};
-    }
-    renderStatus();
+  function addDays(dateStr, n) {
+    const d = parseIsoDate(dateStr);
+    d.setDate(d.getDate() + n);
+    return isoDate(d);
   }
 
-  function renderStatus() {
-    if (!dataMeta.generatedAt || dataMeta.count === 0) {
-      els.dataStatus.textContent =
-        "No release data yet — the fetch workflow hasn't run. See README to trigger it.";
+  function isWindowCovered(anchorDateStr) {
+    let cursor = addDays(anchorDateStr, -RADIUS_DAYS);
+    const end = addDays(anchorDateStr, RADIUS_DAYS);
+    while (cursor <= end) {
+      if (!coveredDays.has(cursor)) return false;
+      cursor = addDays(cursor, 1);
+    }
+    return true;
+  }
+
+  function markWindowCovered(fromISO, toISO) {
+    let cursor = fromISO;
+    while (cursor <= toISO) {
+      coveredDays.add(cursor);
+      cursor = addDays(cursor, 1);
+    }
+  }
+
+  function mergeReleases(fromISO, toISO, releases) {
+    // Live results supersede anything previously held for this range.
+    let cursor = fromISO;
+    while (cursor <= toISO) {
+      delete releasesByDate[cursor];
+      cursor = addDays(cursor, 1);
+    }
+    releases.forEach((r) => {
+      if (!releasesByDate[r.releaseDate]) releasesByDate[r.releaseDate] = [];
+      releasesByDate[r.releaseDate].push(r);
+    });
+  }
+
+  /** Ensures live data is loaded for [anchorDate-30, anchorDate+30], fetching only if needed. */
+  async function ensureWindow(anchorDateStr) {
+    if (isWindowCovered(anchorDateStr)) return;
+
+    if (activeFetchController) activeFetchController.abort();
+    const controller = new AbortController();
+    activeFetchController = controller;
+
+    const fromLabel = parseIsoDate(addDays(anchorDateStr, -RADIUS_DAYS))
+      .toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const toLabel = parseIsoDate(addDays(anchorDateStr, RADIUS_DAYS))
+      .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    els.dataStatus.textContent = `Searching ${fromLabel} – ${toLabel}…`;
+    els.dataStatus.classList.add("is-loading");
+
+    try {
+      const { fromISO, toISO, releases } = await fetchWindow(anchorDateStr, RADIUS_DAYS, controller.signal);
+      mergeReleases(fromISO, toISO, releases);
+      markWindowCovered(fromISO, toISO);
+      renderStatus(fromLabel, toLabel, releases.length);
+    } catch (err) {
+      if (err.name === "AbortError") return; // superseded by a newer query
+      console.error("Live query failed:", err);
+      els.dataStatus.textContent = "Couldn't reach Google Books just now — try again in a moment.";
+      els.dataStatus.classList.remove("is-loading");
       return;
     }
-    const generated = new Date(dataMeta.generatedAt);
-    const stamp = generated.toLocaleDateString(undefined, {
-      year: "numeric", month: "short", day: "numeric",
-    });
-    els.dataStatus.textContent = `${dataMeta.count} titles indexed · last updated ${stamp}`;
+
+    if (activeFetchController === controller) activeFetchController = null;
+    renderCalendar();
+    renderDispatch();
+  }
+
+  function renderStatus(fromLabel, toLabel, count) {
+    els.dataStatus.classList.remove("is-loading");
+    els.dataStatus.textContent = `${count} title${count === 1 ? "" : "s"} found, ${fromLabel} – ${toLabel} (live from Google Books)`;
   }
 
   function renderCalendar() {
@@ -128,6 +172,7 @@
         selectedDate = dateStr;
         renderCalendar();
         renderDispatch();
+        ensureWindow(selectedDate);
       });
 
       els.grid.appendChild(cell);
@@ -220,17 +265,19 @@
     viewMonth -= 1;
     if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
     renderCalendar();
+    ensureWindow(isoDate(new Date(viewYear, viewMonth, 15)));
   });
 
   els.nextBtn.addEventListener("click", () => {
     viewMonth += 1;
     if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
     renderCalendar();
+    ensureWindow(isoDate(new Date(viewYear, viewMonth, 15)));
   });
 
   (async function init() {
-    await loadData();
     renderCalendar();
     renderDispatch();
+    await ensureWindow(selectedDate); // ±30 days around today, on first load
   })();
 })();

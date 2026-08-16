@@ -19,18 +19,22 @@ jobs:
           cat > check-openlibrary.mjs << 'EOF'
           const terms = ["Del Rey", "Tor Books", "Orbit", "Harper Voyager"];
           for (const term of terms) {
-            const url = `https://openlibrary.org/search.json?publisher=${encodeURIComponent(term)}&sort=new&limit=15&fields=title,publisher,publish_date,first_publish_year`;
-            const res = await fetch(url);
-            console.log(`\n=== ${term} (status ${res.status}) ===`);
-            if (!res.ok) continue;
-            const data = await res.json();
-            console.log("numFound:", data.numFound);
-            for (const doc of (data.docs || []).slice(0, 8)) {
-              console.log(" -", JSON.stringify(doc.publish_date), "|", doc.title);
+            try {
+              const url = `https://openlibrary.org/search.json?publisher=${encodeURIComponent(term)}&sort=new&limit=15&fields=title,publisher,publish_date,first_publish_year`;
+              const res = await fetch(url);
+              console.log(`\n=== ${term} (status ${res.status}) ===`);
+              if (!res.ok) { console.log("body:", await res.text()); continue; }
+              const data = await res.json();
+              console.log("numFound:", data.numFound);
+              for (const doc of (data.docs || []).slice(0, 8)) {
+                console.log(" -", JSON.stringify(doc.publish_date), "|", doc.title);
+              }
+            } catch (err) {
+              console.log(`\n=== ${term} FAILED: ${err.message} ===`);
             }
           }
           EOF
-          node check-openlibrary.mjs > debug-output.txt 2>&1
+          node check-openlibrary.mjs > debug-output.txt 2>&1 || true
           cat debug-output.txt
       - run: |
           git config user.name "github-actions[bot]"

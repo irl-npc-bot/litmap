@@ -14,40 +14,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Verify key injection and live fetch end-to-end
+      - name: Full window fetch using the deployed (key-injected) module
         run: |
-          cat > verify.mjs << 'EOF'
+          cat > verify2.mjs << 'EOF'
+          // Fetch the ACTUAL deployed module (with real key already injected)
+          // and run a full fetchWindow, exactly as a date click would.
           const res = await fetch("https://irl-npc-bot.github.io/litmap/js/booksApi.js");
-          const text = await res.text();
-          const match = text.match(/const API_KEY = "([^"]*)"/);
-          const key = match ? match[1] : "NOT FOUND";
-          if (key === "__GOOGLE_BOOKS_API_KEY__") {
-            console.log("STILL PLACEHOLDER - injection failed");
-          } else if (key.length > 20) {
-            console.log("KEY INJECTED - length:", key.length);
-          } else {
-            console.log("UNEXPECTED VALUE:", JSON.stringify(key));
-          }
-
-          // Now do a real authenticated request exactly like the deployed page would
-          const params = new URLSearchParams({
-            q: 'inpublisher:"Del Rey"', country: "US", maxResults: "5",
-            printType: "books", orderBy: "newest", showPreorders: "true", key,
-          });
-          const apiRes = await fetch(`https://www.googleapis.com/books/v1/volumes?${params}`);
-          console.log("authenticated request status:", apiRes.status);
-          if (apiRes.ok) {
-            const data = await apiRes.json();
-            console.log("totalItems:", data.totalItems, "items returned:", (data.items||[]).length);
-          } else {
-            console.log("body:", await apiRes.text());
-          }
+          const src = await res.text();
+          const dataUrl = "data:text/javascript;base64," + Buffer.from(src).toString("base64");
+          const { fetchWindow } = await import(dataUrl);
+          const start = Date.now();
+          const { fromISO, toISO, releases, failedTerms } = await fetchWindow("2026-08-15", 30);
+          console.log(`window: ${fromISO} to ${toISO}`);
+          console.log(`releases found: ${releases.length}`);
+          console.log(`failed terms: ${failedTerms.length}`, failedTerms);
+          console.log(`took ${Date.now() - start}ms`);
+          for (const r of releases.slice(0, 10)) console.log(" -", r.releaseDate, r.title, r.publisherGroup);
           EOF
-          node verify.mjs > debug-output.txt 2>&1
+          node verify2.mjs > debug-output.txt 2>&1
           cat debug-output.txt
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add debug-output.txt
-          git commit -m "debug output" || echo "nothing to commit"
+          git commit -m "debug output v2" || echo "nothing to commit"
           git push

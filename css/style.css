@@ -367,6 +367,10 @@ a { color: var(--accent); }
   color: var(--teal);
 }
 
+.data-status.is-warning {
+  color: #d99a3d;
+}
+
 .data-status.is-loading::before {
   content: "";
   display: inline-block;

@@ -12,6 +12,15 @@
 //     publishes.
 
 const API_BASE = "https://www.googleapis.com/books/v1/volumes";
+// Substituted at deploy time by .github/workflows/deploy-pages.yml from the
+// GOOGLE_BOOKS_API_KEY repo secret. Left as-is (unauthenticated) this key
+// stays a literal placeholder and requests will get rate-limited almost
+// immediately -- Google's unauthenticated Books API quota is too tight for
+// this many parallel requests per date click (confirmed: every request
+// failed with HTTP 429 in testing). The key is necessarily visible in the
+// deployed page's JS source once substituted; restrict it in Google Cloud
+// Console to your Pages domain via HTTP referrer + Books API scope only.
+const API_KEY = "__GOOGLE_BOOKS_API_KEY__";
 const PAGE_SIZE = 40;
 const MAX_PAGES_PER_TERM = 3; // kept low for interactive latency
 const CONCURRENCY = 6;
@@ -88,12 +97,21 @@ async function fetchPage(term, startIndex, signal) {
     showPreorders: "true",
   });
   params.set("startIndex", String(startIndex));
-  const res = await fetch(`${API_BASE}?${params.toString()}`, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status} for term "${term}"`);
-  return res.json();
+  if (API_KEY && !API_KEY.startsWith("__")) params.set("key", API_KEY);
+
+  const url = `${API_BASE}?${params.toString()}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url, { signal });
+    if (res.ok) return res.json();
+    if (res.status === 429 && attempt < 2) {
+      await new Promise((r) => setTimeout(r, 500 * 2 ** attempt)); // 500ms, then 1000ms
+      continue;
+    }
+    throw new Error(`HTTP ${res.status} for term "${term}"`);
+  }
 }
 
-async function fetchForTerm(term, publisherGroup, requireGenreMatch, fromISO, toISO, resultsMap, signal) {
+async function fetchForTerm(term, publisherGroup, requireGenreMatch, fromISO, toISO, resultsMap, signal, failedTerms) {
   let startIndex = 0;
   for (let page = 0; page < MAX_PAGES_PER_TERM; page++) {
     let data;
@@ -102,6 +120,7 @@ async function fetchForTerm(term, publisherGroup, requireGenreMatch, fromISO, to
     } catch (err) {
       if (err.name === "AbortError") throw err;
       console.warn(`  ! ${term}: ${err.message}`);
+      failedTerms.push(term);
       break;
     }
     const items = data.items || [];
@@ -142,17 +161,18 @@ export async function fetchWindow(anchorDate, radiusDays = 30, signal) {
   const toISO = isoDate(to);
 
   const resultsMap = new Map();
+  const failedTerms = [];
   const taskFns = [];
   for (const [group, { pure = [], broad = [] }] of Object.entries(PUBLISHERS)) {
     for (const term of pure) {
-      taskFns.push(() => fetchForTerm(term, group, false, fromISO, toISO, resultsMap, signal));
+      taskFns.push(() => fetchForTerm(term, group, false, fromISO, toISO, resultsMap, signal, failedTerms));
     }
     for (const term of broad) {
-      taskFns.push(() => fetchForTerm(term, group, true, fromISO, toISO, resultsMap, signal));
+      taskFns.push(() => fetchForTerm(term, group, true, fromISO, toISO, resultsMap, signal, failedTerms));
     }
   }
 
   await runPool(taskFns, CONCURRENCY);
 
-  return { fromISO, toISO, releases: [...resultsMap.values()] };
+  return { fromISO, toISO, releases: [...resultsMap.values()], failedTerms };
 }

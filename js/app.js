@@ -92,13 +92,14 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
     const toLabel = parseIsoDate(addDays(anchorDateStr, RADIUS_DAYS))
       .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
     els.dataStatus.textContent = `Searching ${fromLabel} – ${toLabel}…`;
+    els.dataStatus.classList.remove("is-warning");
     els.dataStatus.classList.add("is-loading");
 
     try {
-      const { fromISO, toISO, releases } = await fetchWindow(anchorDateStr, RADIUS_DAYS, controller.signal);
+      const { fromISO, toISO, releases, failedTerms } = await fetchWindow(anchorDateStr, RADIUS_DAYS, controller.signal);
       mergeReleases(fromISO, toISO, releases);
       markWindowCovered(fromISO, toISO);
-      renderStatus(fromLabel, toLabel, releases.length);
+      renderStatus(fromLabel, toLabel, releases.length, failedTerms);
     } catch (err) {
       if (err.name === "AbortError") return; // superseded by a newer query
       console.error("Live query failed:", err);
@@ -112,8 +113,15 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
     renderDispatch();
   }
 
-  function renderStatus(fromLabel, toLabel, count) {
+  function renderStatus(fromLabel, toLabel, count, failedTerms) {
     els.dataStatus.classList.remove("is-loading");
+    if (failedTerms && failedTerms.length > 0) {
+      els.dataStatus.textContent =
+        `${count} title${count === 1 ? "" : "s"} found, ${fromLabel} – ${toLabel} ` +
+        `(${failedTerms.length} publisher${failedTerms.length === 1 ? "" : "s"} temporarily unavailable — try again shortly)`;
+      els.dataStatus.classList.add("is-warning");
+      return;
+    }
     els.dataStatus.textContent = `${count} title${count === 1 ? "" : "s"} found, ${fromLabel} – ${toLabel} (live from Google Books)`;
   }
 

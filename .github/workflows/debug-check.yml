@@ -1,0 +1,53 @@
+name: Debug check (temporary)
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  run-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify key injection and live fetch end-to-end
+        run: |
+          cat > verify.mjs << 'EOF'
+          const res = await fetch("https://irl-npc-bot.github.io/litmap/js/booksApi.js");
+          const text = await res.text();
+          const match = text.match(/const API_KEY = "([^"]*)"/);
+          const key = match ? match[1] : "NOT FOUND";
+          if (key === "__GOOGLE_BOOKS_API_KEY__") {
+            console.log("STILL PLACEHOLDER - injection failed");
+          } else if (key.length > 20) {
+            console.log("KEY INJECTED - length:", key.length);
+          } else {
+            console.log("UNEXPECTED VALUE:", JSON.stringify(key));
+          }
+
+          // Now do a real authenticated request exactly like the deployed page would
+          const params = new URLSearchParams({
+            q: 'inpublisher:"Del Rey"', country: "US", maxResults: "5",
+            printType: "books", orderBy: "newest", showPreorders: "true", key,
+          });
+          const apiRes = await fetch(`https://www.googleapis.com/books/v1/volumes?${params}`);
+          console.log("authenticated request status:", apiRes.status);
+          if (apiRes.ok) {
+            const data = await apiRes.json();
+            console.log("totalItems:", data.totalItems, "items returned:", (data.items||[]).length);
+          } else {
+            console.log("body:", await apiRes.text());
+          }
+          EOF
+          node verify.mjs > debug-output.txt 2>&1
+          cat debug-output.txt
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add debug-output.txt
+          git commit -m "debug output" || echo "nothing to commit"
+          git push

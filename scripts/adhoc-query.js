@@ -63,6 +63,9 @@ async function fetchForTerm(term, publisherGroup, resultsMap) {
       if (!FULL_DATE_RE.test(releaseDate)) continue;
       if (releaseDate < WINDOW_FROM || releaseDate > WINDOW_TO) continue;
       const categories = info.categories || [];
+      if (process.env.DEBUG_FETCH) {
+        console.log(`  [in-window, pre-genre-filter] "${info.title}" date=${releaseDate} categories=${JSON.stringify(categories)}`);
+      }
       if (!categories.some((c) => SCI_FI_ONLY_RE.test(c))) continue;
       resultsMap.set(item.id, {
         title: info.title || "Untitled",

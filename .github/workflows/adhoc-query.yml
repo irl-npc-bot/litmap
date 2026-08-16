@@ -16,10 +16,11 @@ jobs:
           node-version: 20
       - env:
           GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
-        run: node scripts/adhoc-query.js
+          DEBUG_FETCH: "1"
+        run: node scripts/adhoc-query.js 2>&1 | tee adhoc-debug.log
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add adhoc-results.json
+          git add adhoc-results.json adhoc-debug.log
           git commit -m "Ad-hoc query results" || echo "nothing to commit"
           git push

@@ -21,9 +21,18 @@ const PUBLISHERS = {
   "Bloomsbury Publishing": ["Bloomsbury Publishing", "Bloomsbury"],
 };
 
-// Science-fiction specific -- deliberately excludes pure-fantasy signals
-// (dragon, magic, wizard) since the ask is "science fiction specifically".
-const SCI_FI_ONLY_RE = /science.?fiction|space opera|cyberpunk|dystopia|post-?apocalyp|time travel|artificial intelligence|\balien\b|extraterrestrial|\brobot|space exploration|first contact|generation ship|near.?future/i;
+const SCI_FI_SIGNAL_RE = /\bspaceship|space station|starship|\bspace opera|cyberpunk|dystopia|post-?apocalyp|time travel|artificial intelligence|\bAI\b|\balien|extraterrestrial|\brobot|android|cyborg|galax|interstellar|near-future|colonization of (mars|the moon)|first contact|generation ship|terraform|dyst[oa]pian future|sci-?fi|science fiction/i;
+const FANTASY_SIGNAL_RE = /\bdragon|\bmagic\b|sorcer|wizard|\belf\b|\belves\b|prophecy|kingdom|witch|spell\b|enchant|fae\b|fairy|goblin|orc\b|realm of|throne\b/i;
+
+function guessGenre(title, description) {
+  const text = `${title} ${description}`;
+  const sf = SCI_FI_SIGNAL_RE.test(text);
+  const fantasy = FANTASY_SIGNAL_RE.test(text);
+  if (sf && !fantasy) return "likely sci-fi";
+  if (fantasy && !sf) return "likely fantasy";
+  if (sf && fantasy) return "sci-fi/fantasy mix?";
+  return "unclear (no signal)";
+}
 
 const FULL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -63,17 +72,17 @@ async function fetchForTerm(term, publisherGroup, resultsMap) {
       if (!FULL_DATE_RE.test(releaseDate)) continue;
       if (releaseDate < WINDOW_FROM || releaseDate > WINDOW_TO) continue;
       const categories = info.categories || [];
-      if (process.env.DEBUG_FETCH) {
-        console.log(`  [in-window, pre-genre-filter] "${info.title}" date=${releaseDate} categories=${JSON.stringify(categories)}`);
-      }
-      if (!categories.some((c) => SCI_FI_ONLY_RE.test(c))) continue;
+      const description = info.description || "";
+      const title = info.title || "Untitled";
       resultsMap.set(item.id, {
-        title: info.title || "Untitled",
+        title,
         authors: info.authors || [],
         publisher: info.publisher || term,
         publisherGroup,
         releaseDate,
         categories,
+        genreGuess: guessGenre(title, description),
+        descriptionSnippet: description.slice(0, 160),
         infoLink: toHttps(info.infoLink || info.canonicalVolumeLink || ""),
       });
     }

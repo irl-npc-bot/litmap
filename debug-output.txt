@@ -1,8 +1,0 @@
-
-=== Del Rey FAILED: fetch failed ===
-
-=== Tor Books FAILED: fetch failed ===
-
-=== Orbit FAILED: fetch failed ===
-
-=== Harper Voyager FAILED: fetch failed ===

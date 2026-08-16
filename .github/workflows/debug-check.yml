@@ -11,12 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: CORS header check
-        run: |
-          curl -s -D - -o /dev/null \
-            -H "Origin: https://irl-npc-bot.github.io" \
-            "https://www.googleapis.com/books/v1/volumes?q=inpublisher:%22Del+Rey%22&maxResults=1" > debug-output.txt
-          echo "" >> debug-output.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Simulate browser click (unauthenticated, same concurrency)
+        run: node scripts/simulate-browser.mjs > debug-output.txt 2>&1; cat debug-output.txt
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

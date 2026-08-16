@@ -1,5 +1,0 @@
-window: 2026-07-16 to 2026-09-14
-releases found: 1
-failed terms: 0 []
-took 4858ms
- - 2026-09-01 The Book of Were-Wolves Simon & Schuster

@@ -21,7 +21,9 @@ jobs:
           for (const term of terms) {
             try {
               const url = `https://openlibrary.org/search.json?publisher=${encodeURIComponent(term)}&sort=new&limit=15&fields=title,publisher,publish_date,first_publish_year`;
-              const res = await fetch(url);
+              const res = await fetch(url, {
+                headers: { "User-Agent": "litmap-research/1.0 (testing data source feasibility)" },
+              });
               console.log(`\n=== ${term} (status ${res.status}) ===`);
               if (!res.ok) { console.log("body:", await res.text()); continue; }
               const data = await res.json();

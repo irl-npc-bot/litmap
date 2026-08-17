@@ -1,0 +1,33 @@
+fetch booksApi.js status: 200
+key present: 39 chars
+has fetchUpcoming export: true
+has month precision logic: true
+
+fetchWindow: 2 releases, 0 failed terms
+  day-precision: 2, month-precision: 0
+  ! Berkley: HTTP 429 for term "Berkley"
+  ! Del Rey: HTTP 429 for term "Del Rey"
+  ! Ace Books: HTTP 429 for term "Ace Books"
+  ! Ballantine Books: HTTP 429 for term "Ballantine Books"
+  ! Penguin Random House: HTTP 429 for term "Penguin Random House"
+  ! Avon: HTTP 429 for term "Avon"
+  ! Simon & Schuster: HTTP 429 for term "Simon & Schuster"
+  ! Harper Voyager: HTTP 429 for term "Harper Voyager"
+  ! DAW Books: HTTP 429 for term "DAW Books"
+  ! HarperCollins: HTTP 429 for term "HarperCollins"
+  ! Gallery Books: HTTP 429 for term "Gallery Books"
+  ! Orbit: HTTP 429 for term "Orbit"
+  ! Redhook Books: HTTP 429 for term "Redhook Books"
+  ! Forge Books: HTTP 429 for term "Forge Books"
+  ! Macmillan: HTTP 429 for term "Macmillan"
+  ! Tordotcom: HTTP 429 for term "Tordotcom"
+  ! Hachette Book Group: HTTP 429 for term "Hachette Book Group"
+  ! Bloomsbury Publishing: HTTP 429 for term "Bloomsbury Publishing"
+  ! Tor Books: HTTP 429 for term "Tor Books"
+  ! Saga Press: HTTP 429 for term "Saga Press"
+  ! Bloomsbury: HTTP 429 for term "Bloomsbury"
+
+fetchUpcoming(12): 2 releases, 21 failed terms, took 8530ms
+  day-precision: 2, month-precision: 0
+ - 2026-09-01 (day) | The Book of Were-Wolves | Simon & Schuster
+ - 2027-02-25 (day) | The Red Winter | Macmillan Publishers

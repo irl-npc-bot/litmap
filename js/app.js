@@ -1,4 +1,4 @@
-import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
+import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js";
 
 (function () {
   "use strict";
@@ -30,6 +30,9 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
     dispatchDate: document.getElementById("dispatch-date"),
     dispatchList: document.getElementById("dispatch-list"),
     dataStatus: document.getElementById("data-status"),
+    upcomingToggle: document.getElementById("upcoming-toggle"),
+    upcomingStatus: document.getElementById("upcoming-status"),
+    upcomingList: document.getElementById("upcoming-list"),
   };
 
   function isoDate(d) {
@@ -74,8 +77,11 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
       cursor = addDays(cursor, 1);
     }
     releases.forEach((r) => {
-      if (!releasesByDate[r.releaseDate]) releasesByDate[r.releaseDate] = [];
-      releasesByDate[r.releaseDate].push(r);
+      // Month-precision entries can't be pinned to a real day, so they're
+      // bucketed under the 1st of that month and rendered as approximate.
+      const bucketDate = r.precision === "month" ? `${r.releaseDate}-01` : r.releaseDate;
+      if (!releasesByDate[bucketDate]) releasesByDate[bucketDate] = [];
+      releasesByDate[bucketDate].push(r);
     });
   }
 
@@ -164,7 +170,7 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
         const dotCount = Math.min(releases.length, MAX_DOTS);
         for (let i = 0; i < dotCount; i++) {
           const dot = document.createElement("span");
-          dot.className = "release-mark";
+          dot.className = releases[i].precision === "month" ? "release-mark-approx" : "release-mark";
           marks.appendChild(dot);
         }
         if (releases.length > MAX_DOTS) {
@@ -185,6 +191,89 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
 
       els.grid.appendChild(cell);
     }
+  }
+
+  function formatMonthYear(yyyymm) {
+    const [y, m] = yyyymm.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  }
+
+  /** @param {{showDateBadge?: boolean}} [opts] */
+  function buildReleaseCard(r, opts) {
+    const showDateBadge = opts && opts.showDateBadge;
+    const card = document.createElement("article");
+    card.className = "release-card";
+
+    if (r.coverUrl) {
+      const img = document.createElement("img");
+      img.className = "release-cover";
+      img.src = r.coverUrl;
+      img.alt = "";
+      img.loading = "lazy";
+      card.appendChild(img);
+    } else {
+      const ph = document.createElement("div");
+      ph.className = "release-cover placeholder";
+      ph.textContent = "No cover";
+      card.appendChild(ph);
+    }
+
+    const body = document.createElement("div");
+
+    if (showDateBadge) {
+      const badge = document.createElement("p");
+      badge.className = "release-date-badge";
+      badge.textContent = r.precision === "month"
+        ? `~ ${formatMonthYear(r.releaseDate)}`
+        : parseIsoDate(r.releaseDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      body.appendChild(badge);
+    }
+
+    const title = document.createElement("p");
+    title.className = "release-title";
+    if (r.infoLink) {
+      const a = document.createElement("a");
+      a.href = r.infoLink;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = r.title || "Untitled";
+      title.appendChild(a);
+    } else {
+      title.textContent = r.title || "Untitled";
+    }
+    body.appendChild(title);
+
+    if (r.authors && r.authors.length) {
+      const author = document.createElement("p");
+      author.className = "release-author";
+      author.textContent = r.authors.join(", ");
+      body.appendChild(author);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "release-meta";
+    if (r.precision === "month") {
+      const aTag = document.createElement("span");
+      aTag.className = "tag tag-approx";
+      aTag.textContent = "date approximate";
+      meta.appendChild(aTag);
+    }
+    if (r.publisherGroup) {
+      const pTag = document.createElement("span");
+      pTag.className = "tag tag-publisher";
+      pTag.textContent = r.publisherGroup;
+      meta.appendChild(pTag);
+    }
+    if (r.publisher && r.publisher !== r.publisherGroup) {
+      const iTag = document.createElement("span");
+      iTag.className = "tag";
+      iTag.textContent = r.publisher;
+      meta.appendChild(iTag);
+    }
+    body.appendChild(meta);
+
+    card.appendChild(body);
+    return card;
   }
 
   function renderDispatch() {
@@ -208,64 +297,7 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
     }
 
     releases.forEach((r) => {
-      const card = document.createElement("article");
-      card.className = "release-card";
-
-      if (r.coverUrl) {
-        const img = document.createElement("img");
-        img.className = "release-cover";
-        img.src = r.coverUrl;
-        img.alt = "";
-        img.loading = "lazy";
-        card.appendChild(img);
-      } else {
-        const ph = document.createElement("div");
-        ph.className = "release-cover placeholder";
-        ph.textContent = "No cover";
-        card.appendChild(ph);
-      }
-
-      const body = document.createElement("div");
-
-      const title = document.createElement("p");
-      title.className = "release-title";
-      if (r.infoLink) {
-        const a = document.createElement("a");
-        a.href = r.infoLink;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.textContent = r.title || "Untitled";
-        title.appendChild(a);
-      } else {
-        title.textContent = r.title || "Untitled";
-      }
-      body.appendChild(title);
-
-      if (r.authors && r.authors.length) {
-        const author = document.createElement("p");
-        author.className = "release-author";
-        author.textContent = r.authors.join(", ");
-        body.appendChild(author);
-      }
-
-      const meta = document.createElement("div");
-      meta.className = "release-meta";
-      if (r.publisherGroup) {
-        const pTag = document.createElement("span");
-        pTag.className = "tag tag-publisher";
-        pTag.textContent = r.publisherGroup;
-        meta.appendChild(pTag);
-      }
-      if (r.publisher && r.publisher !== r.publisherGroup) {
-        const iTag = document.createElement("span");
-        iTag.className = "tag";
-        iTag.textContent = r.publisher;
-        meta.appendChild(iTag);
-      }
-      body.appendChild(meta);
-
-      card.appendChild(body);
-      els.dispatchList.appendChild(card);
+      els.dispatchList.appendChild(buildReleaseCard(r, { showDateBadge: r.precision === "month" }));
     });
   }
 
@@ -281,6 +313,91 @@ import { fetchWindow, isoDate as isoDateFmt } from "./booksApi.js";
     if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
     renderCalendar();
     ensureWindow(isoDate(new Date(viewYear, viewMonth, 15)));
+  });
+
+  let upcomingLoaded = false;
+
+  async function loadUpcoming() {
+    els.upcomingStatus.textContent = "Scanning the next 12 months…";
+    els.upcomingStatus.classList.remove("is-warning");
+    els.upcomingStatus.classList.add("is-loading");
+
+    let result;
+    try {
+      result = await fetchUpcoming(12);
+    } catch (err) {
+      console.error("Upcoming query failed:", err);
+      els.upcomingStatus.textContent = "Couldn't reach Google Books just now — try again in a moment.";
+      els.upcomingStatus.classList.remove("is-loading");
+      return;
+    }
+
+    const { releases, failedTerms } = result;
+    els.upcomingStatus.classList.remove("is-loading");
+    if (failedTerms.length > 0) {
+      els.upcomingStatus.textContent =
+        `${releases.length} titles found (${failedTerms.length} publisher${failedTerms.length === 1 ? "" : "s"} temporarily unavailable — try again shortly)`;
+      els.upcomingStatus.classList.add("is-warning");
+    } else {
+      els.upcomingStatus.textContent = `${releases.length} titles found, next 12 months (live from Google Books)`;
+    }
+
+    renderUpcoming(releases);
+    upcomingLoaded = true;
+  }
+
+  function renderUpcoming(releases) {
+    els.upcomingList.innerHTML = "";
+
+    if (releases.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "empty-state";
+      empty.textContent = "No upcoming science fiction releases found in this window yet.";
+      els.upcomingList.appendChild(empty);
+      return;
+    }
+
+    // Group by month, using rangeStart so both day- and month-precision
+    // entries sort and bucket sensibly together.
+    const byMonth = new Map();
+    releases
+      .slice()
+      .sort((a, b) => a.rangeStart.localeCompare(b.rangeStart) || (a.title || "").localeCompare(b.title || ""))
+      .forEach((r) => {
+        const monthKey = r.rangeStart.slice(0, 7); // "YYYY-MM"
+        if (!byMonth.has(monthKey)) byMonth.set(monthKey, []);
+        byMonth.get(monthKey).push(r);
+      });
+
+    for (const [monthKey, items] of byMonth) {
+      const group = document.createElement("div");
+      group.className = "upcoming-month-group";
+
+      const heading = document.createElement("h3");
+      heading.textContent = formatMonthYear(monthKey);
+      group.appendChild(heading);
+
+      const cards = document.createElement("div");
+      cards.className = "upcoming-cards";
+      items.forEach((r) => cards.appendChild(buildReleaseCard(r, { showDateBadge: true })));
+      group.appendChild(cards);
+
+      els.upcomingList.appendChild(group);
+    }
+  }
+
+  els.upcomingToggle.addEventListener("click", () => {
+    const isHidden = els.upcomingList.hasAttribute("hidden");
+    if (isHidden) {
+      els.upcomingList.removeAttribute("hidden");
+      els.upcomingToggle.textContent = "Hide upcoming";
+      els.upcomingToggle.setAttribute("aria-expanded", "true");
+      if (!upcomingLoaded) loadUpcoming();
+    } else {
+      els.upcomingList.setAttribute("hidden", "");
+      els.upcomingToggle.textContent = "Show upcoming";
+      els.upcomingToggle.setAttribute("aria-expanded", "false");
+    }
   });
 
   (async function init() {

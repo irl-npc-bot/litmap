@@ -54,8 +54,21 @@
 
 </main>
 
+<section class="upcoming-panel" aria-label="Upcoming releases">
+  <div class="upcoming-header">
+    <div>
+      <p class="eyebrow">Long-range scan</p>
+      <h2>Upcoming Releases</h2>
+      <p class="upcoming-subtitle">Everything on the horizon for the next 12 months — including titles Google hasn't pinned to an exact day yet.</p>
+    </div>
+    <button id="upcoming-toggle" class="nav-btn upcoming-toggle-btn" type="button" aria-expanded="false">Show upcoming</button>
+  </div>
+  <p id="upcoming-status" class="data-status"></p>
+  <div id="upcoming-list" class="upcoming-list" hidden></div>
+</section>
+
 <footer class="site-footer">
-  <p>Sources: Google Books API, filtered to Science Fiction (and adjacent Fantasy) titles from Penguin Random House, HarperCollins, Simon &amp; Schuster, Hachette Book Group, Macmillan Publishers, and Bloomsbury Publishing (US editions). Data is queried live from your browser for &plusmn;30 days around whichever date you're viewing — coverage of far-future or very recent titles depends on how complete Google's own listing is for that window.</p>
+  <p>Sources: Google Books API, filtered to Science Fiction (and adjacent Fantasy) titles from Penguin Random House, HarperCollins, Simon &amp; Schuster, Hachette Book Group, Macmillan Publishers, and Bloomsbury Publishing (US editions). The calendar queries live for &plusmn;30 days around whichever date you're viewing; the Upcoming Releases panel scans a full year ahead. Titles Google has only pinned to a month (not yet an exact day) show up as approximate — marked with a hollow dot on the calendar and a "date approximate" tag.</p>
 </footer>
 
 <script src="js/app.js" type="module"></script>

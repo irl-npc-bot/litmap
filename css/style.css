@@ -135,6 +135,76 @@ a { color: var(--accent); }
 }
 
 /* ---------------------------------------------------------
+   Upcoming releases panel
+--------------------------------------------------------- */
+.upcoming-panel {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 32px auto 0;
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.upcoming-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.upcoming-header h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 20px;
+  margin: 2px 0 6px;
+}
+
+.upcoming-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 520px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.upcoming-toggle-btn {
+  width: auto;
+  height: 36px;
+  padding: 0 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.upcoming-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.upcoming-month-group h3 {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.upcoming-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+/* ---------------------------------------------------------
    Calendar controls
 --------------------------------------------------------- */
 .calendar-controls {
@@ -254,6 +324,14 @@ a { color: var(--accent); }
   box-shadow: 0 0 4px var(--accent-glow);
 }
 
+.release-mark-approx {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--accent);
+}
+
 .release-mark-overflow {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -351,6 +429,14 @@ a { color: var(--accent); }
 }
 
 .tag.tag-publisher { border-color: var(--teal); color: var(--teal); }
+.tag.tag-approx { border-color: var(--accent); color: var(--accent); }
+
+.release-date-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
 
 /* ---------------------------------------------------------
    Data status + footer

@@ -22,8 +22,8 @@ const API_BASE = "https://www.googleapis.com/books/v1/volumes";
 // Console to your Pages domain via HTTP referrer + Books API scope only.
 const API_KEY = "__GOOGLE_BOOKS_API_KEY__";
 const PAGE_SIZE = 40;
-const MAX_PAGES_PER_TERM = 3; // kept low for interactive latency
-const CONCURRENCY = 6;
+const MAX_PAGES_PER_TERM = 5; // was 3; safe to raise now requests are authenticated
+const CONCURRENCY = 8;
 
 export const PUBLISHERS = {
   "Penguin Random House": {
@@ -53,6 +53,7 @@ export const PUBLISHERS = {
 };
 
 const FULL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MONTH_DATE_RE = /^\d{4}-\d{2}$/;
 const GENRE_RE = /science.?fiction|fantasy|dystopia|apocalyp|speculative fiction|space opera|alien|extraterrestrial|time travel|cyberpunk|dragon|robot|magic/i;
 
 export function isoDate(d) {
@@ -62,14 +63,35 @@ export function isoDate(d) {
   return `${y}-${m}-${day}`;
 }
 
+/** Last calendar day of a "YYYY-MM" string, as "YYYY-MM-DD". */
+function monthEndDate(yyyymm) {
+  const [y, m] = yyyymm.split("-").map(Number);
+  const lastDay = new Date(y, m, 0).getDate(); // day 0 of next month = last day of this month
+  return `${yyyymm}-${String(lastDay).padStart(2, "0")}`;
+}
+
 function toHttps(url) {
   return url ? url.replace(/^http:\/\//, "https://") : url;
 }
 
 function normalizeItem(item, publisherGroup, requireGenreMatch) {
   const info = item.volumeInfo || {};
-  const releaseDate = info.publishedDate || "";
-  if (!FULL_DATE_RE.test(releaseDate)) return null;
+  const rawDate = info.publishedDate || "";
+
+  let precision, releaseDate, rangeStart, rangeEnd;
+  if (FULL_DATE_RE.test(rawDate)) {
+    precision = "day";
+    releaseDate = rawDate;
+    rangeStart = rawDate;
+    rangeEnd = rawDate;
+  } else if (MONTH_DATE_RE.test(rawDate)) {
+    precision = "month";
+    releaseDate = rawDate;
+    rangeStart = `${rawDate}-01`;
+    rangeEnd = monthEndDate(rawDate);
+  } else {
+    return null; // year-only or missing dates are too vague to place usefully
+  }
 
   const categories = info.categories || [];
   if (requireGenreMatch && !categories.some((c) => GENRE_RE.test(c))) return null;
@@ -80,7 +102,10 @@ function normalizeItem(item, publisherGroup, requireGenreMatch) {
     authors: info.authors || [],
     publisher: info.publisher || publisherGroup,
     publisherGroup,
-    releaseDate,
+    releaseDate,   // "YYYY-MM-DD" or "YYYY-MM"
+    precision,     // "day" | "month"
+    rangeStart,    // always a concrete "YYYY-MM-DD", for range-overlap checks
+    rangeEnd,
     genreTags: categories,
     coverUrl: toHttps(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ""),
     infoLink: info.infoLink || info.canonicalVolumeLink || "",
@@ -111,7 +136,7 @@ async function fetchPage(term, startIndex, signal) {
   }
 }
 
-async function fetchForTerm(term, publisherGroup, requireGenreMatch, fromISO, toISO, resultsMap, signal, failedTerms) {
+async function fetchForTerm(term, publisherGroup, requireGenreMatch, fromISO, toISO, resultsMap, signal, failedTerms, dayPrecisionOnly) {
   let startIndex = 0;
   for (let page = 0; page < MAX_PAGES_PER_TERM; page++) {
     let data;
@@ -127,7 +152,10 @@ async function fetchForTerm(term, publisherGroup, requireGenreMatch, fromISO, to
     const totalItems = data.totalItems || 0;
     for (const item of items) {
       const normalized = normalizeItem(item, publisherGroup, requireGenreMatch);
-      if (normalized && normalized.releaseDate >= fromISO && normalized.releaseDate <= toISO) {
+      if (!normalized) continue;
+      if (dayPrecisionOnly && normalized.precision !== "day") continue;
+      // Interval overlap: include if [rangeStart, rangeEnd] intersects [fromISO, toISO]
+      if (normalized.rangeStart <= toISO && normalized.rangeEnd >= fromISO) {
         resultsMap.set(normalized.id, normalized);
       }
     }
@@ -150,7 +178,10 @@ async function runPool(taskFns, limit) {
 
 /**
  * Query Google Books for releases in [anchorDate - radiusDays, anchorDate + radiusDays].
- * Returns { fromISO, toISO, releases }.
+ * Includes both day-precision and month-precision results (month-precision
+ * entries are useful context even though they can't be pinned to an exact
+ * calendar cell -- the caller decides how to display them).
+ * Returns { fromISO, toISO, releases, failedTerms }.
  */
 export async function fetchWindow(anchorDate, radiusDays = 30, signal) {
   const from = new Date(anchorDate);
@@ -165,10 +196,42 @@ export async function fetchWindow(anchorDate, radiusDays = 30, signal) {
   const taskFns = [];
   for (const [group, { pure = [], broad = [] }] of Object.entries(PUBLISHERS)) {
     for (const term of pure) {
-      taskFns.push(() => fetchForTerm(term, group, false, fromISO, toISO, resultsMap, signal, failedTerms));
+      taskFns.push(() => fetchForTerm(term, group, false, fromISO, toISO, resultsMap, signal, failedTerms, false));
     }
     for (const term of broad) {
-      taskFns.push(() => fetchForTerm(term, group, true, fromISO, toISO, resultsMap, signal, failedTerms));
+      taskFns.push(() => fetchForTerm(term, group, true, fromISO, toISO, resultsMap, signal, failedTerms, false));
+    }
+  }
+
+  await runPool(taskFns, CONCURRENCY);
+
+  return { fromISO, toISO, releases: [...resultsMap.values()], failedTerms };
+}
+
+/**
+ * Query Google Books for everything releasing between today and
+ * `monthsAhead` months out -- day-precision AND month-precision both
+ * included, since the point of this view is "what's coming", not "what
+ * date exactly". Meant for a standing "Upcoming Releases" list, not the
+ * day-by-day calendar grid.
+ * Returns { fromISO, toISO, releases, failedTerms }.
+ */
+export async function fetchUpcoming(monthsAhead = 12, signal) {
+  const from = new Date();
+  const to = new Date();
+  to.setMonth(to.getMonth() + monthsAhead);
+  const fromISO = isoDate(from);
+  const toISO = isoDate(to);
+
+  const resultsMap = new Map();
+  const failedTerms = [];
+  const taskFns = [];
+  for (const [group, { pure = [], broad = [] }] of Object.entries(PUBLISHERS)) {
+    for (const term of pure) {
+      taskFns.push(() => fetchForTerm(term, group, false, fromISO, toISO, resultsMap, signal, failedTerms, false));
+    }
+    for (const term of broad) {
+      taskFns.push(() => fetchForTerm(term, group, true, fromISO, toISO, resultsMap, signal, failedTerms, false));
     }
   }
 

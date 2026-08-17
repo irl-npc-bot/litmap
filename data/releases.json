@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-15T04:33:57.095Z",
-  "count": 15,
+  "generatedAt": "2026-08-17T08:08:30.551Z",
+  "count": 6,
   "dateWindow": {
-    "from": "2026-02-15",
-    "to": "2028-02-15"
+    "from": "2026-02-17",
+    "to": "2028-02-17"
   },
   "releases": [
     {
@@ -22,96 +22,6 @@
       "infoLink": "http://books.google.com/books?id=oKO9EQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
     },
     {
-      "id": "GPTFEQAAQBAJ",
-      "title": "The Last Wizards' Ball",
-      "authors": [
-        "Charlaine Harris"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-03-31",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=GPTFEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=GPTFEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "21jLEQAAQBAJ",
-      "title": "The Photonic Effect",
-      "authors": [
-        "Mike Chen"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-04-21",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=21jLEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=21jLEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "6vzMEQAAQBAJ",
-      "title": "If We Cannot Go at the Speed of Light",
-      "authors": [
-        "Kim Choyeop"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-04-28",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=6vzMEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=6vzMEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "wGGCEQAAQBAJ",
-      "title": "We Dance Upon Demons",
-      "authors": [
-        "Vaishnavi Patel"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-05-12",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=wGGCEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=wGGCEQAAQBAJ&source=gbs_api"
-    },
-    {
-      "id": "Hb3VEQAAQBAJ",
-      "title": "The Rainshadow Orphans",
-      "authors": [
-        "Naomi Ishiguro"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-05-26",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=Hb3VEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=Hb3VEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "mZXYEQAAQBAJ",
-      "title": "The Found and the Lost",
-      "authors": [
-        "Ursula K. Le Guin"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-06-09",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=mZXYEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=mZXYEQAAQBAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
       "id": "otCEEQAAQBAJ",
       "title": "Songs of the Dead",
       "authors": [
@@ -128,64 +38,19 @@
       "infoLink": "https://play.google.com/store/books/details?id=otCEEQAAQBAJ&source=gbs_api"
     },
     {
-      "id": "IOGQEQAAQBAJ",
-      "title": "The Sixth Nik",
-      "authors": [
-        "Daniel Kraus"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-06-23",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=IOGQEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=IOGQEQAAQBAJ&source=gbs_api"
-    },
-    {
-      "id": "seCQEQAAQBAJ",
-      "title": "A Forsaken Prophecy",
-      "authors": [
-        "Stacey McEwan"
-      ],
-      "publisher": "Simon and Schuster",
-      "publisherGroup": "Simon & Schuster",
-      "releaseDate": "2026-07-21",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=seCQEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
-      "infoLink": "https://play.google.com/store/books/details?id=seCQEQAAQBAJ&source=gbs_api"
-    },
-    {
-      "id": "pKnf0QEACAAJ",
+      "id": "VYbCEQAAQBAJ",
       "title": "The Book of Were-Wolves",
       "authors": [
         "Sabine Baring-Gould"
       ],
-      "publisher": "S&S/Saga Press",
+      "publisher": "Simon and Schuster",
       "publisherGroup": "Simon & Schuster",
       "releaseDate": "2026-09-01",
       "genreTags": [
         "Social Science"
       ],
-      "coverUrl": "https://books.google.com/books/content?id=pKnf0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=pKnf0QEACAAJ&dq=inpublisher:%22Saga+Press%22&hl=&as_pt=BOOKS&source=gbs_api"
-    },
-    {
-      "id": "LGHW0QEACAAJ",
-      "title": "Crossroads of Ravens",
-      "authors": [
-        "Andrzej Sapkowski"
-      ],
-      "publisher": "Hachette Book Group",
-      "publisherGroup": "Hachette Book Group",
-      "releaseDate": "2026-09-29",
-      "genreTags": [
-        "Fiction"
-      ],
-      "coverUrl": "https://books.google.com/books/content?id=LGHW0QEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-      "infoLink": "http://books.google.com/books?id=LGHW0QEACAAJ&dq=inpublisher:%22Orbit%22&hl=&as_pt=BOOKS&source=gbs_api"
+      "coverUrl": "https://books.google.com/books/content?id=VYbCEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+      "infoLink": "https://play.google.com/store/books/details?id=VYbCEQAAQBAJ&source=gbs_api"
     },
     {
       "id": "aEQS0gEACAAJ",

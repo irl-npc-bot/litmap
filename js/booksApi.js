@@ -22,8 +22,10 @@ const API_BASE = "https://www.googleapis.com/books/v1/volumes";
 // Console to your Pages domain via HTTP referrer + Books API scope only.
 const API_KEY = "__GOOGLE_BOOKS_API_KEY__";
 const PAGE_SIZE = 40;
-const MAX_PAGES_PER_TERM = 5; // was 3; safe to raise now requests are authenticated
-const CONCURRENCY = 8;
+const MAX_PAGES_PER_TERM = 5;
+const CONCURRENCY = 5; // was 8; large back-to-back bursts (e.g. calendar click
+                        // then immediately "Show upcoming") can trip Google's
+                        // short-window per-key rate limit even authenticated
 
 export const PUBLISHERS = {
   "Penguin Random House": {
@@ -125,11 +127,13 @@ async function fetchPage(term, startIndex, signal) {
   if (API_KEY && !API_KEY.startsWith("__")) params.set("key", API_KEY);
 
   const url = `${API_BASE}?${params.toString()}`;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 5; attempt++) {
     const res = await fetch(url, { signal });
     if (res.ok) return res.json();
-    if (res.status === 429 && attempt < 2) {
-      await new Promise((r) => setTimeout(r, 500 * 2 ** attempt)); // 500ms, then 1000ms
+    if (res.status === 429 && attempt < 4) {
+      // 1s, 2s, 4s, 8s -- Google's short-window rate limit outlasts a quick
+      // couple of retries (confirmed empirically), so this backs off further.
+      await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
       continue;
     }
     throw new Error(`HTTP ${res.status} for term "${term}"`);

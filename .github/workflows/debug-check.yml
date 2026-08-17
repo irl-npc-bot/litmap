@@ -14,42 +14,43 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Verify new URL, key injection, and new functions work end-to-end
+      - name: Realistic-timing verification against live page
         run: |
-          cat > verify3.mjs << 'EOF'
+          cat > verify4.mjs << 'EOF'
           const base = "https://silentonair.github.io/litmap";
           const res = await fetch(`${base}/js/booksApi.js`);
-          console.log("fetch booksApi.js status:", res.status);
           const src = await res.text();
-          const match = src.match(/const API_KEY = "([^"]*)"/);
-          console.log("key present:", match ? match[1].length + " chars" : "NOT FOUND");
-          console.log("has fetchUpcoming export:", src.includes("export async function fetchUpcoming"));
-          console.log("has month precision logic:", src.includes('precision = "month"'));
-
           const dataUrl = "data:text/javascript;base64," + Buffer.from(src).toString("base64");
           const { fetchWindow, fetchUpcoming } = await import(dataUrl);
 
+          console.log("--- Call 1: fetchWindow (simulates clicking a date) ---");
           const w = await fetchWindow("2026-08-15", 30);
-          console.log(`\nfetchWindow: ${w.releases.length} releases, ${w.failedTerms.length} failed terms`);
-          const dayCount = w.releases.filter(r => r.precision === "day").length;
-          const monthCount = w.releases.filter(r => r.precision === "month").length;
-          console.log(`  day-precision: ${dayCount}, month-precision: ${monthCount}`);
+          console.log(`releases: ${w.releases.length}, failed: ${w.failedTerms.length}`, w.failedTerms);
 
+          console.log("\n--- waiting 5s (simulates a human looking at results before next click) ---");
+          await new Promise(r => setTimeout(r, 5000));
+
+          console.log("\n--- Call 2: fetchUpcoming (simulates clicking 'Show upcoming') ---");
           const start = Date.now();
           const u = await fetchUpcoming(12);
-          console.log(`\nfetchUpcoming(12): ${u.releases.length} releases, ${u.failedTerms.length} failed terms, took ${Date.now()-start}ms`);
+          console.log(`releases: ${u.releases.length}, failed: ${u.failedTerms.length}, took ${Date.now()-start}ms`, u.failedTerms);
           const uDay = u.releases.filter(r => r.precision === "day").length;
           const uMonth = u.releases.filter(r => r.precision === "month").length;
-          console.log(`  day-precision: ${uDay}, month-precision: ${uMonth}`);
-          for (const r of u.releases.slice(0, 15)) {
+          console.log(`day-precision: ${uDay}, month-precision: ${uMonth}`);
+          for (const r of u.releases.slice(0, 20)) {
             console.log(" -", r.releaseDate, `(${r.precision})`, "|", r.title, "|", r.publisherGroup);
           }
+
+          console.log("\n--- Adversarial: Call 3 immediately (zero delay) to test backoff recovery ---");
+          const start2 = Date.now();
+          const w2 = await fetchWindow("2026-08-15", 30);
+          console.log(`releases: ${w2.releases.length}, failed: ${w2.failedTerms.length}, took ${Date.now()-start2}ms`, w2.failedTerms);
           EOF
-          node verify3.mjs > debug-output.txt 2>&1 || true
+          node verify4.mjs > debug-output.txt 2>&1 || true
           cat debug-output.txt
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add debug-output.txt
-          git commit -m "verify new features" || echo "nothing to commit"
+          git commit -m "verify with realistic timing" || echo "nothing to commit"
           git push

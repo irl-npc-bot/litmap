@@ -1,5 +1,3 @@
-import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js";
-
 (function () {
   "use strict";
 
@@ -9,134 +7,109 @@ import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js
     "July", "August", "September", "October", "November", "December"
   ];
   const MAX_DOTS = 5;
-  const RADIUS_DAYS = 30;
-
-  /** @type {Record<string, Array<Object>>} */
-  let releasesByDate = {};
-  /** ISO date strings we've already queried live (empty result still counts as "covered"). */
-  const coveredDays = new Set();
-  let activeFetchController = null;
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayISO = isoDate(today);
+
   let viewYear = today.getFullYear();
-  let viewMonth = today.getMonth(); // 0-indexed
-  let selectedDate = isoDate(today);
+  let viewMonth = today.getMonth();
+  let selectedDate = todayISO;
+
+  /** @type {Record<string, Array<Object>>} day ISO -> releases */
+  let releasesByDate = {};
+  /** month-precision entries: YYYY-MM -> releases */
+  let releasesByMonth = {};
 
   const els = {
-    grid: document.getElementById("calendar-grid"),
-    monthLabel: document.getElementById("month-label"),
-    prevBtn: document.getElementById("prev-month"),
-    nextBtn: document.getElementById("next-month"),
-    dispatchDate: document.getElementById("dispatch-date"),
-    dispatchList: document.getElementById("dispatch-list"),
-    dataStatus: document.getElementById("data-status"),
-    upcomingToggle: document.getElementById("upcoming-toggle"),
-    upcomingStatus: document.getElementById("upcoming-status"),
-    upcomingList: document.getElementById("upcoming-list"),
+    grid:          document.getElementById("calendar-grid"),
+    monthLabel:    document.getElementById("month-label"),
+    prevBtn:       document.getElementById("prev-month"),
+    nextBtn:       document.getElementById("next-month"),
+    dispatchDate:  document.getElementById("dispatch-date"),
+    dispatchList:  document.getElementById("dispatch-list"),
+    dataStatus:    document.getElementById("data-status"),
   };
 
+  // ── helpers ────────────────────────────────────────────────────────────────
+
   function isoDate(d) {
-    return isoDateFmt(d);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   }
 
   function parseIsoDate(str) {
-    // Avoid UTC-shift bugs by constructing from parts rather than `new Date(str)`
     const [y, m, d] = str.split("-").map(Number);
     return new Date(y, m - 1, d);
   }
 
-  function addDays(dateStr, n) {
-    const d = parseIsoDate(dateStr);
-    d.setDate(d.getDate() + n);
-    return isoDate(d);
+  function isPast(dateISO) {
+    return dateISO < todayISO;
   }
 
-  function isWindowCovered(anchorDateStr) {
-    let cursor = addDays(anchorDateStr, -RADIUS_DAYS);
-    const end = addDays(anchorDateStr, RADIUS_DAYS);
-    while (cursor <= end) {
-      if (!coveredDays.has(cursor)) return false;
-      cursor = addDays(cursor, 1);
-    }
-    return true;
+  function isCurrentMonth(y, m) {
+    return y === today.getFullYear() && m === today.getMonth();
   }
 
-  function markWindowCovered(fromISO, toISO) {
-    let cursor = fromISO;
-    while (cursor <= toISO) {
-      coveredDays.add(cursor);
-      cursor = addDays(cursor, 1);
-    }
-  }
+  // ── data loading ────────────────────────────────────────────────────────────
 
-  function mergeReleases(fromISO, toISO, releases) {
-    // Live results supersede anything previously held for this range.
-    let cursor = fromISO;
-    while (cursor <= toISO) {
-      delete releasesByDate[cursor];
-      cursor = addDays(cursor, 1);
-    }
-    releases.forEach((r) => {
-      // Month-precision entries can't be pinned to a real day, so they're
-      // bucketed under the 1st of that month and rendered as approximate.
-      const bucketDate = r.precision === "month" ? `${r.releaseDate}-01` : r.releaseDate;
-      if (!releasesByDate[bucketDate]) releasesByDate[bucketDate] = [];
-      releasesByDate[bucketDate].push(r);
-    });
-  }
+  const FULL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  const MONTH_DATE_RE = /^\d{4}-\d{2}$/;
 
-  /** Ensures live data is loaded for [anchorDate-30, anchorDate+30], fetching only if needed. */
-  async function ensureWindow(anchorDateStr) {
-    if (isWindowCovered(anchorDateStr)) return;
-
-    if (activeFetchController) activeFetchController.abort();
-    const controller = new AbortController();
-    activeFetchController = controller;
-
-    const fromLabel = parseIsoDate(addDays(anchorDateStr, -RADIUS_DAYS))
-      .toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    const toLabel = parseIsoDate(addDays(anchorDateStr, RADIUS_DAYS))
-      .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-    els.dataStatus.textContent = `Searching ${fromLabel} – ${toLabel}…`;
-    els.dataStatus.classList.remove("is-warning");
-    els.dataStatus.classList.add("is-loading");
-
+  async function loadData() {
+    els.dataStatus.textContent = "Loading…";
     try {
-      const { fromISO, toISO, releases, failedTerms } = await fetchWindow(anchorDateStr, RADIUS_DAYS, controller.signal);
-      mergeReleases(fromISO, toISO, releases);
-      markWindowCovered(fromISO, toISO);
-      renderStatus(fromLabel, toLabel, releases.length, failedTerms);
-    } catch (err) {
-      if (err.name === "AbortError") return; // superseded by a newer query
-      console.error("Live query failed:", err);
-      els.dataStatus.textContent = "Couldn't reach Google Books just now — try again in a moment.";
-      els.dataStatus.classList.remove("is-loading");
-      return;
-    }
+      const res = await fetch("data/releases.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
 
-    if (activeFetchController === controller) activeFetchController = null;
-    renderCalendar();
-    renderDispatch();
-  }
+      releasesByDate = {};
+      releasesByMonth = {};
 
-  function renderStatus(fromLabel, toLabel, count, failedTerms) {
-    els.dataStatus.classList.remove("is-loading");
-    if (failedTerms && failedTerms.length > 0) {
+      for (const r of (json.releases || [])) {
+        if (!r.releaseDate) continue;
+
+        if (FULL_DATE_RE.test(r.releaseDate)) {
+          r._precision = "day";
+          if (!releasesByDate[r.releaseDate]) releasesByDate[r.releaseDate] = [];
+          releasesByDate[r.releaseDate].push(r);
+        } else if (MONTH_DATE_RE.test(r.releaseDate)) {
+          r._precision = "month";
+          if (!releasesByMonth[r.releaseDate]) releasesByMonth[r.releaseDate] = [];
+          releasesByMonth[r.releaseDate].push(r);
+          // Also bucket under the 1st so the calendar can show a dot
+          const bucketDay = r.releaseDate + "-01";
+          if (!releasesByDate[bucketDay]) releasesByDate[bucketDay] = [];
+          releasesByDate[bucketDay].push(r);
+        }
+      }
+
+      const total = (json.releases || []).length;
+      const future = (json.releases || []).filter(r => {
+        const key = FULL_DATE_RE.test(r.releaseDate) ? r.releaseDate : r.releaseDate + "-01";
+        return key >= todayISO;
+      }).length;
       els.dataStatus.textContent =
-        `${count} title${count === 1 ? "" : "s"} found, ${fromLabel} – ${toLabel} ` +
-        `(${failedTerms.length} publisher${failedTerms.length === 1 ? "" : "s"} temporarily unavailable — try again shortly)`;
-      els.dataStatus.classList.add("is-warning");
-      return;
+        `${future} upcoming release${future === 1 ? "" : "s"} · updated from Locus Magazine`;
+    } catch (err) {
+      console.error("Failed to load releases:", err);
+      els.dataStatus.textContent = "Couldn't load release data.";
     }
-    els.dataStatus.textContent = `${count} title${count === 1 ? "" : "s"} found, ${fromLabel} – ${toLabel} (live from Google Books)`;
   }
+
+  // ── calendar ────────────────────────────────────────────────────────────────
 
   function renderCalendar() {
     els.monthLabel.textContent = `${MONTHS[viewMonth]} ${viewYear}`;
-    els.grid.innerHTML = "";
 
+    // Disable prev button if we're already at the current month
+    els.prevBtn.disabled = isCurrentMonth(viewYear, viewMonth);
+
+    els.grid.innerHTML = "";
     const firstOfMonth = new Date(viewYear, viewMonth, 1);
-    const startOffset = firstOfMonth.getDay(); // 0 = Sunday
+    const startOffset = firstOfMonth.getDay();
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
     for (let i = 0; i < startOffset; i++) {
@@ -149,15 +122,17 @@ import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js
       const cellDate = new Date(viewYear, viewMonth, day);
       const dateStr = isoDate(cellDate);
       const releases = releasesByDate[dateStr] || [];
+      const past = isPast(dateStr);
 
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = "day-cell";
-      cell.setAttribute("role", "gridcell");
-      cell.setAttribute("aria-label", `${MONTHS[viewMonth]} ${day}, ${viewYear}${releases.length ? `, ${releases.length} release(s)` : ""}`);
-
-      if (dateStr === isoDate(today)) cell.classList.add("is-today");
+      if (past) cell.classList.add("is-past");
+      if (dateStr === todayISO) cell.classList.add("is-today");
       if (dateStr === selectedDate) cell.classList.add("is-selected");
+      cell.setAttribute("role", "gridcell");
+      cell.setAttribute("aria-label",
+        `${MONTHS[viewMonth]} ${day}, ${viewYear}${releases.length ? `, ${releases.length} release(s)` : ""}`);
 
       const num = document.createElement("span");
       num.className = "day-number";
@@ -170,7 +145,9 @@ import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js
         const dotCount = Math.min(releases.length, MAX_DOTS);
         for (let i = 0; i < dotCount; i++) {
           const dot = document.createElement("span");
-          dot.className = releases[i].precision === "month" ? "release-mark-approx" : "release-mark";
+          dot.className = releases[i]._precision === "month"
+            ? "release-mark-approx"
+            : "release-mark";
           marks.appendChild(dot);
         }
         if (releases.length > MAX_DOTS) {
@@ -186,61 +163,39 @@ import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js
         selectedDate = dateStr;
         renderCalendar();
         renderDispatch();
-        ensureWindow(selectedDate);
       });
 
       els.grid.appendChild(cell);
     }
   }
 
-  function formatMonthYear(yyyymm) {
-    const [y, m] = yyyymm.split("-").map(Number);
-    return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  // ── dispatch (day detail panel) ─────────────────────────────────────────────
+
+  function formatDate(dateISO, precision) {
+    if (precision === "month") {
+      const [y, m] = dateISO.split("-").map(Number);
+      return new Date(y, m - 1, 1)
+        .toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    }
+    return parseIsoDate(dateISO)
+      .toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   }
 
-  /** @param {{showDateBadge?: boolean}} [opts] */
-  function buildReleaseCard(r, opts) {
-    const showDateBadge = opts && opts.showDateBadge;
+  function buildCard(r) {
     const card = document.createElement("article");
     card.className = "release-card";
 
-    if (r.coverUrl) {
-      const img = document.createElement("img");
-      img.className = "release-cover";
-      img.src = r.coverUrl;
-      img.alt = "";
-      img.loading = "lazy";
-      card.appendChild(img);
-    } else {
-      const ph = document.createElement("div");
-      ph.className = "release-cover placeholder";
-      ph.textContent = "No cover";
-      card.appendChild(ph);
-    }
+    // No cover image in manual data — show imprint initial as placeholder
+    const ph = document.createElement("div");
+    ph.className = "release-cover placeholder";
+    ph.textContent = (r.imprint || "?").charAt(0).toUpperCase();
+    card.appendChild(ph);
 
     const body = document.createElement("div");
 
-    if (showDateBadge) {
-      const badge = document.createElement("p");
-      badge.className = "release-date-badge";
-      badge.textContent = r.precision === "month"
-        ? `~ ${formatMonthYear(r.releaseDate)}`
-        : parseIsoDate(r.releaseDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-      body.appendChild(badge);
-    }
-
     const title = document.createElement("p");
     title.className = "release-title";
-    if (r.infoLink) {
-      const a = document.createElement("a");
-      a.href = r.infoLink;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.textContent = r.title || "Untitled";
-      title.appendChild(a);
-    } else {
-      title.textContent = r.title || "Untitled";
-    }
+    title.textContent = r.title || "Untitled";
     body.appendChild(title);
 
     if (r.authors && r.authors.length) {
@@ -252,157 +207,95 @@ import { fetchWindow, fetchUpcoming, isoDate as isoDateFmt } from "./booksApi.js
 
     const meta = document.createElement("div");
     meta.className = "release-meta";
-    if (r.precision === "month") {
+
+    if (r._precision === "month") {
       const aTag = document.createElement("span");
       aTag.className = "tag tag-approx";
       aTag.textContent = "date approximate";
       meta.appendChild(aTag);
     }
-    if (r.publisherGroup) {
-      const pTag = document.createElement("span");
-      pTag.className = "tag tag-publisher";
-      pTag.textContent = r.publisherGroup;
-      meta.appendChild(pTag);
-    }
-    if (r.publisher && r.publisher !== r.publisherGroup) {
+
+    if (r.imprint) {
       const iTag = document.createElement("span");
-      iTag.className = "tag";
-      iTag.textContent = r.publisher;
+      iTag.className = "tag tag-publisher";
+      iTag.textContent = r.imprint;
       meta.appendChild(iTag);
     }
-    body.appendChild(meta);
 
+    if (r.notes) {
+      const nTag = document.createElement("span");
+      nTag.className = "tag";
+      nTag.textContent = r.notes;
+      meta.appendChild(nTag);
+    }
+
+    body.appendChild(meta);
     card.appendChild(body);
     return card;
   }
 
   function renderDispatch() {
+    // Show the month-precision entries for the selected date's month, too
+    const monthKey = selectedDate.slice(0, 7); // "YYYY-MM"
+    const dayReleases = (releasesByDate[selectedDate] || [])
+      .filter(r => r._precision === "day");
+    const monthReleases = (releasesByMonth[monthKey] || []);
+
     const dateObj = parseIsoDate(selectedDate);
     els.dispatchDate.textContent = dateObj.toLocaleDateString(undefined, {
       weekday: "long", year: "numeric", month: "long", day: "numeric",
     });
 
-    const releases = (releasesByDate[selectedDate] || [])
-      .slice()
-      .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-
     els.dispatchList.innerHTML = "";
 
-    if (releases.length === 0) {
+    if (dayReleases.length === 0 && monthReleases.length === 0) {
       const empty = document.createElement("p");
       empty.className = "empty-state";
-      empty.textContent = "No science fiction releases found for this date.";
+      empty.textContent = "No releases on this date.";
       els.dispatchList.appendChild(empty);
       return;
     }
 
-    releases.forEach((r) => {
-      els.dispatchList.appendChild(buildReleaseCard(r, { showDateBadge: r.precision === "month" }));
-    });
+    // Exact-day releases first
+    dayReleases
+      .slice().sort((a, b) => (a.title || "").localeCompare(b.title || ""))
+      .forEach(r => els.dispatchList.appendChild(buildCard(r)));
+
+    // Then month-precision entries for this month (if any), with a divider
+    if (monthReleases.length > 0) {
+      const divider = document.createElement("p");
+      divider.className = "dispatch-month-note";
+      divider.textContent = `Also releasing sometime in ${MONTHS[dateObj.getMonth()]}:`;
+      els.dispatchList.appendChild(divider);
+      monthReleases
+        .slice().sort((a, b) => (a.title || "").localeCompare(b.title || ""))
+        .forEach(r => els.dispatchList.appendChild(buildCard(r)));
+    }
   }
 
+  // ── nav ─────────────────────────────────────────────────────────────────────
+
   els.prevBtn.addEventListener("click", () => {
+    // Don't go before the current month
+    if (isCurrentMonth(viewYear, viewMonth)) return;
     viewMonth -= 1;
     if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
     renderCalendar();
-    ensureWindow(isoDate(new Date(viewYear, viewMonth, 15)));
+    renderDispatch();
   });
 
   els.nextBtn.addEventListener("click", () => {
     viewMonth += 1;
     if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
     renderCalendar();
-    ensureWindow(isoDate(new Date(viewYear, viewMonth, 15)));
+    renderDispatch();
   });
 
-  let upcomingLoaded = false;
-
-  async function loadUpcoming() {
-    els.upcomingStatus.textContent = "Scanning the next 12 months…";
-    els.upcomingStatus.classList.remove("is-warning");
-    els.upcomingStatus.classList.add("is-loading");
-
-    let result;
-    try {
-      result = await fetchUpcoming(12);
-    } catch (err) {
-      console.error("Upcoming query failed:", err);
-      els.upcomingStatus.textContent = "Couldn't reach Google Books just now — try again in a moment.";
-      els.upcomingStatus.classList.remove("is-loading");
-      return;
-    }
-
-    const { releases, failedTerms } = result;
-    els.upcomingStatus.classList.remove("is-loading");
-    if (failedTerms.length > 0) {
-      els.upcomingStatus.textContent =
-        `${releases.length} titles found (${failedTerms.length} publisher${failedTerms.length === 1 ? "" : "s"} temporarily unavailable — try again shortly)`;
-      els.upcomingStatus.classList.add("is-warning");
-    } else {
-      els.upcomingStatus.textContent = `${releases.length} titles found, next 12 months (live from Google Books)`;
-    }
-
-    renderUpcoming(releases);
-    upcomingLoaded = true;
-  }
-
-  function renderUpcoming(releases) {
-    els.upcomingList.innerHTML = "";
-
-    if (releases.length === 0) {
-      const empty = document.createElement("p");
-      empty.className = "empty-state";
-      empty.textContent = "No upcoming science fiction releases found in this window yet.";
-      els.upcomingList.appendChild(empty);
-      return;
-    }
-
-    // Group by month, using rangeStart so both day- and month-precision
-    // entries sort and bucket sensibly together.
-    const byMonth = new Map();
-    releases
-      .slice()
-      .sort((a, b) => a.rangeStart.localeCompare(b.rangeStart) || (a.title || "").localeCompare(b.title || ""))
-      .forEach((r) => {
-        const monthKey = r.rangeStart.slice(0, 7); // "YYYY-MM"
-        if (!byMonth.has(monthKey)) byMonth.set(monthKey, []);
-        byMonth.get(monthKey).push(r);
-      });
-
-    for (const [monthKey, items] of byMonth) {
-      const group = document.createElement("div");
-      group.className = "upcoming-month-group";
-
-      const heading = document.createElement("h3");
-      heading.textContent = formatMonthYear(monthKey);
-      group.appendChild(heading);
-
-      const cards = document.createElement("div");
-      cards.className = "upcoming-cards";
-      items.forEach((r) => cards.appendChild(buildReleaseCard(r, { showDateBadge: true })));
-      group.appendChild(cards);
-
-      els.upcomingList.appendChild(group);
-    }
-  }
-
-  els.upcomingToggle.addEventListener("click", () => {
-    const isHidden = els.upcomingList.hasAttribute("hidden");
-    if (isHidden) {
-      els.upcomingList.removeAttribute("hidden");
-      els.upcomingToggle.textContent = "Hide upcoming";
-      els.upcomingToggle.setAttribute("aria-expanded", "true");
-      if (!upcomingLoaded) loadUpcoming();
-    } else {
-      els.upcomingList.setAttribute("hidden", "");
-      els.upcomingToggle.textContent = "Show upcoming";
-      els.upcomingToggle.setAttribute("aria-expanded", "false");
-    }
-  });
+  // ── init ────────────────────────────────────────────────────────────────────
 
   (async function init() {
+    await loadData();
     renderCalendar();
     renderDispatch();
-    await ensureWindow(selectedDate); // ±30 days around today, on first load
   })();
 })();

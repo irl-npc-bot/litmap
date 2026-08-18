@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Almanac — Sci-Fi Release Calendar</title>
-<meta name="description" content="A calendar of upcoming and recent science fiction book releases from the major publishing houses.">
+<meta name="description" content="Upcoming science fiction book releases from the major SF imprints, hand-curated from Locus Magazine.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
   <div class="header-inner">
     <p class="eyebrow">A field guide to forthcoming worlds</p>
     <h1 class="wordmark">Almanac<span class="wordmark-dot">.</span></h1>
-    <p class="tagline">Science fiction releases from the major publishing houses, charted by date.</p>
+    <p class="tagline">Upcoming science fiction releases from the major SF imprints, curated from Locus Magazine.</p>
   </div>
 </header>
 
@@ -48,29 +48,25 @@
       <h2 id="dispatch-date">Select a date</h2>
     </div>
     <div id="dispatch-list" class="dispatch-list">
-      <p class="empty-state">Click a date on the calendar to see what's landing that day.</p>
+      <p class="empty-state">Click a date on the calendar to see what's releasing.</p>
     </div>
   </section>
 
 </main>
 
-<section class="upcoming-panel" aria-label="Upcoming releases">
-  <div class="upcoming-header">
-    <div>
-      <p class="eyebrow">Long-range scan</p>
-      <h2>Upcoming Releases</h2>
-      <p class="upcoming-subtitle">Everything on the horizon for the next 12 months — including titles Google hasn't pinned to an exact day yet.</p>
-    </div>
-    <button id="upcoming-toggle" class="nav-btn upcoming-toggle-btn" type="button" aria-expanded="false">Show upcoming</button>
-  </div>
-  <p id="upcoming-status" class="data-status"></p>
-  <div id="upcoming-list" class="upcoming-list" hidden></div>
-</section>
-
 <footer class="site-footer">
-  <p>Sources: Google Books API, filtered to Science Fiction (and adjacent Fantasy) titles from Penguin Random House, HarperCollins, Simon &amp; Schuster, Hachette Book Group, Macmillan Publishers, and Bloomsbury Publishing (US editions). The calendar queries live for &plusmn;30 days around whichever date you're viewing; the Upcoming Releases panel scans a full year ahead. Titles Google has only pinned to a month (not yet an exact day) show up as approximate — marked with a hollow dot on the calendar and a "date approximate" tag.</p>
+  <p>
+    Curated monthly from <a href="https://locusmag.com/forthcomingbooks/" target="_blank" rel="noopener">Locus Magazine's forthcoming books list</a>,
+    restricted to science fiction from major SF imprints (Tor, Orbit, Del Rey, Harper Voyager, Saga Press, Tordotcom, and others).
+    Hollow dots on the calendar mean the exact date isn't known yet — just the month.
+  </p>
+  <p class="footer-edit-hint">
+    To add or update releases: edit <code>data/releases.json</code> in the
+    <a href="https://github.com/silentonair/litmap/blob/main/data/releases.json" target="_blank" rel="noopener">GitHub repository</a>
+    and commit — the site rebuilds automatically in about 30 seconds.
+  </p>
 </footer>
 
-<script src="js/app.js" type="module"></script>
+<script src="js/app.js" defer></script>
 </body>
 </html>

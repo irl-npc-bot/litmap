@@ -46,7 +46,7 @@ body {
 a { color: var(--accent); }
 
 /* ---------------------------------------------------------
-   Ambient starfield backdrop (signature element, quiet)
+   Ambient starfield backdrop
 --------------------------------------------------------- */
 .sky {
   position: fixed;
@@ -135,76 +135,6 @@ a { color: var(--accent); }
 }
 
 /* ---------------------------------------------------------
-   Upcoming releases panel
---------------------------------------------------------- */
-.upcoming-panel {
-  position: relative;
-  z-index: 1;
-  max-width: 1080px;
-  margin: 32px auto 0;
-  padding: 24px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.upcoming-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.upcoming-header h2 {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 20px;
-  margin: 2px 0 6px;
-}
-
-.upcoming-subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-  max-width: 520px;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.upcoming-toggle-btn {
-  width: auto;
-  height: 36px;
-  padding: 0 16px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.upcoming-list {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.upcoming-month-group h3 {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--teal);
-  margin: 0 0 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.upcoming-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-}
-
-/* ---------------------------------------------------------
    Calendar controls
 --------------------------------------------------------- */
 .calendar-controls {
@@ -231,10 +161,11 @@ a { color: var(--accent); }
   font-family: var(--font-mono);
   font-size: 16px;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
-.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.nav-btn:disabled { opacity: 0.25; cursor: default; }
 
 .nav-btn:focus-visible,
 .day-cell:focus-visible {
@@ -279,7 +210,7 @@ a { color: var(--accent); }
   justify-content: space-between;
   padding: 6px 7px;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .day-cell:hover { border-color: var(--teal); }
@@ -291,11 +222,17 @@ a { color: var(--accent); }
   pointer-events: none;
 }
 
+/* Past days: dimmed, but still clickable to see what was released */
+.day-cell.is-past {
+  opacity: 0.38;
+}
+
 .day-cell.is-today { border-color: var(--teal); }
 
 .day-cell.is-selected {
   border-color: var(--accent);
   background: var(--accent-soft);
+  opacity: 1; /* un-dim if past but selected */
 }
 
 .day-number {
@@ -307,7 +244,7 @@ a { color: var(--accent); }
 .day-cell.is-today .day-number,
 .day-cell.is-selected .day-number { color: var(--text); }
 
-/* constellation marker: small dot cluster scaled by release count */
+/* Release dots */
 .release-marks {
   display: flex;
   gap: 3px;
@@ -324,6 +261,7 @@ a { color: var(--accent); }
   box-shadow: 0 0 4px var(--accent-glow);
 }
 
+/* Hollow dot = month-precision (date approximate) */
 .release-mark-approx {
   width: 5px;
   height: 5px;
@@ -359,6 +297,15 @@ a { color: var(--accent); }
   overflow-y: auto;
 }
 
+.dispatch-month-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+}
+
 .empty-state {
   font-family: var(--font-body);
   font-size: 14px;
@@ -388,10 +335,14 @@ a { color: var(--accent); }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-faint);
-  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-radius: 4px;
+  width: 52px;
+  height: 78px;
 }
 
 .release-title {
@@ -429,17 +380,10 @@ a { color: var(--accent); }
 }
 
 .tag.tag-publisher { border-color: var(--teal); color: var(--teal); }
-.tag.tag-approx { border-color: var(--accent); color: var(--accent); }
-
-.release-date-badge {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  margin: 0 0 4px;
-}
+.tag.tag-approx    { border-color: var(--accent); color: var(--accent); }
 
 /* ---------------------------------------------------------
-   Data status + footer
+   Status bar
 --------------------------------------------------------- */
 .data-status {
   font-family: var(--font-mono);
@@ -449,30 +393,9 @@ a { color: var(--accent); }
   text-align: center;
 }
 
-.data-status.is-loading {
-  color: var(--teal);
-}
-
-.data-status.is-warning {
-  color: #d99a3d;
-}
-
-.data-status.is-loading::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
+/* ---------------------------------------------------------
+   Footer
+--------------------------------------------------------- */
 .site-footer {
   position: relative;
   z-index: 1;
@@ -487,6 +410,16 @@ a { color: var(--accent); }
   font-size: 11px;
   line-height: 1.7;
   color: var(--text-faint);
+  margin: 0 0 8px;
+}
+
+.footer-edit-hint code {
+  font-family: var(--font-mono);
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 10px;
 }
 
 /* ---------------------------------------------------------

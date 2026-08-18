@@ -20,15 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build site (inject API key, not committed to git)
-        env:
-          GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
+      - name: Build site
         run: |
           mkdir -p _site
           cp -r index.html css js data _site/
-          # Substitute the placeholder with the real key in the build output only.
-          # The placeholder in the committed source file is left untouched.
-          sed -i "s/__GOOGLE_BOOKS_API_KEY__/${GOOGLE_BOOKS_API_KEY}/" _site/js/booksApi.js
 
       - uses: actions/upload-pages-artifact@v3
         with:
